@@ -44,7 +44,7 @@ class fir(models.Model):
     
 class Missione(models.Model):
     #id_uscita è la chiave della Tab Missioni in WinWaste
-    #verificarne il fild type con Grillo
+    #verificarne il field type con Grillo
     id_uscita = models.AutoField(primary_key=True)    
     data = models.DateField(auto_now=False)
     cliente_origine = models.ForeignKey(Cliente, on_delete=models.PROTECT)
@@ -73,7 +73,10 @@ class Scarico(models.Model):
     
     def previsto_in_orizzonte(self,orizzonte):
         now = timezone.now()
-        return now <= self.data_ora <= now + datetime.timedelta(days=orizzonte)
+        if (now <= self.data_ora) and  (self.data_ora <= now + datetime.timedelta(days=orizzonte)):
+            return True
+        else:
+            return False
 
 class Composizione_Scarico(models.Model):
     num_fiscale = models.ForeignKey(fir, on_delete=models.CASCADE)
@@ -123,7 +126,7 @@ class venditaMPS(models.Model):
     def save(self, *args, **kwargs):
         if not self.imponibile_riga:
             self.imponibile_riga = self.get_ricavo()
-        super(Subject, self).save(*args, **kwargs) # il vero metodo save
+        super(self).save(*args, **kwargs) # il vero metodo save
         
     
 class Profit_tab(models.Model):
