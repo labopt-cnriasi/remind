@@ -4,6 +4,13 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+# Useful links:
+# https://django-book.readthedocs.io/en/latest/chapter05.html
+# https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Models
+# Models https://docs.djangoproject.com/en/3.0/topics/db/models/#relationships
+# Models fields https://docs.djangoproject.com/en/3.0/ref/models/fields/#django.db.models.Field.verbose_name
+# Validators https://docs.djangoproject.com/en/3.0/ref/validators/#minvaluevalidator
+# Model instance reference https://docs.djangoproject.com/en/3.0/ref/models/instances/#validating-objects
 
 # NB: If you make changes to a Django model, you’ll need to make the same 
 # changes inside your database to keep your database consistent with the model. 
@@ -129,26 +136,14 @@ class Profit_tab(models.Model):
     
     def get_importo_smaltimento(self):
         return (self.num_fiscale.peso_netto)*(self.prezzo_smaltimento)
-    
-    def save(self, *args, **kwargs):
-        if not self.importo_smaltimento:
-            self.importo_smaltimento = self.get_importo_smaltimento()
-        super(Subject, self).save(*args, **kwargs) # il vero metodo save
-    
+        
     addeb_trasporto	  = models.BooleanField()
-    importo_trasporto  = models.FloatField(validators=[MinValueValidator(0)],)
+    importo_trasporto = models.FloatField(validators=[MinValueValidator(0)],)
     distanza_percorsa = models.FloatField(validators=[MinValueValidator(0)],)
     costo_trasporto   = models.FloatField(validators=[MinValueValidator(0)],)
     
     def get_costo_trasporto(self):
         return (self.distanza_percorsa)*0.9 # altrimenti specifica da input esterno
-    
-    def save(self, *args, **kwargs):
-        if not self.costo_trasporto:
-            self.costo_trasporto = self.get_costo_trasporto()
-        super(Subject, self).save(*args, **kwargs) # il vero metodo save
-    
-
     
     addeb_selezione = models.BooleanField()
     costo_selezione = models.FloatField(validators=[MinValueValidator(0)],)
@@ -165,9 +160,13 @@ class Profit_tab(models.Model):
         -self.costo_selezione -self.costo_trasporto -self.costo_smaltimento
     
     def save(self, *args, **kwargs):
+        if not self.importo_smaltimento:
+            self.importo_smaltimento = self.get_importo_smaltimento()
+        if not self.costo_trasporto:
+            self.costo_trasporto = self.get_costo_trasporto()
         if not self.profitto_totale:
             self.profitto_totale = self.get_profitto()
-        super(Subject, self).save(*args, **kwargs) # il vero metodo save
+        super(self).save(*args, **kwargs) # il vero metodo save
     
 
     
