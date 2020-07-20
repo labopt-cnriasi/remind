@@ -29,41 +29,75 @@ class Cliente(models.Model):
     long = models.DecimalField(verbose_name = "longitudine", max_digits = 15, decimal_places = 10)
     timewindow_LB  = models.TimeField(default=datetime.time(9 ,00))
     timewindow_UB  = models.TimeField(default=datetime.time(17,00))
-    tempo_servizio = models.TimeField(default=datetime.time(0,30))
+    tempo_servizio = models.FloatField(validators=[MinValueValidator(0)],)
     
-class fir(models.Model):
-    num_fiscale = models.CharField(max_length=50,primary_key=True)
-    cer = models.PositiveIntegerField(verbose_name = "CER")
-    peso_netto = models.PositiveIntegerField()
-    id_produttore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
-    id_smaltitore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
-    id_trasportatore = models.CharField(max_length=50)
-    targa_automezzo = models.CharField(max_length=10)
-    targa_rimorchio = models.CharField(max_length=10)
+class Trasportatore(models.Model):
+    id_trasportatore = models.CharField(max_length=50,primary_key=True) #Innocenti / altri
+    indirizzo = models.CharField(max_length=50)
+    
+class mezzi(models.Model):
+    targa = models.CharField(max_length=50,primary_key=True) 
+    is_rimorchio = models.BooleanField(default = False)
+    nome_trasportatore = models.ForeignKey(Trasportatore,on_delete=models.PROTECT) # il proprietario 
+    
+    add_rimorchio = models.BooleanField(default = False,validators=[val_add_rimorchio],)
+    def val_add_rimorchio(self):
+        if self.is_rimorchio == True:
+            return False
+
+class cer(models.Model):
+    id_cer = models.CharField(verbose_name = "CER",max_length=50,primary_key=True)
+    descrizione = models.CharField(max_length = 100) ## definifare validator da lista di ammissibili
     
     
-class Missione(models.Model):
+class Missione(models.Model): ## programmazione
     #id_uscita è la chiave della Tab Missioni in WinWaste
     #verificarne il field type con Grillo
     id_uscita = models.AutoField(primary_key=True)    
-    data = models.DateField(auto_now=False)
+    data = models.DateField(auto_now=False,validators=[validate_date]) # giorno ritiro/consegna
     cliente_origine = models.ForeignKey(Cliente, on_delete=models.PROTECT)
     cliente_destinazione = models.ForeignKey(Cliente, on_delete=models.PROTECT)
-    numero_casse = models.PositiveIntegerField(validators=[MinValueValidator(1),MaxValueValidator(2)],)
+    numero_casse = models.PositiveIntegerField(validators=[MinValueValidator(1)],)
     
-    # NB: il fir della missione sarà disponibile solo al suo completamento?
-    num_fiscale = models.ForeignKey(fir, on_delete=models.PROTECT)
+    def validate_date(self):
+        today = date.today()
+        if self.data < today:
+            raise ValidationError(
+                ('data prevista non ammissibile'),
+                params={'valore': self.data},)
+
+class fir(models.Model):
+    num_fiscale = models.CharField(max_length=50,primary_key=True)
+    uscita = models.ForeignKey(Missione, on_delete=models.PROTECT)
+    cer = models.ForeignKey(cer, on_delete=models.PROTECT)
+    peso_netto = models.PositiveIntegerField()
+    id_produttore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
+    id_smaltitore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
+    id_trasportatore = models.ForeignKey(Trasportatore, on_delete=models.PROTECT)
     
-class Scarico(models.Model):
+    def val_automezzo(self):
+        if self.targa_automezzo.is_rimorchio == True:
+            raise ValidationError(
+                ('La targa inserita non corrisponde ad un automezzo'),
+                params={'valore': self.targa_automezzo},)
+            
+    def val_rimorchio(self):
+        if self.targa_rimorchio.is_rimorchio == False:
+            raise ValidationError(
+                ('La targa inserita non corrisponde ad un rimorchio'),
+                params={'valore': self.targa_rimorchio},)      
+            
+    targa_automezzo = models.ForeignKey(mezzi, on_delete=models.PROTECT,validators = [val_automezzo])
+    targa_rimorchio = models.ForeignKey(mezzi, on_delete=models.PROTECT,validators = [val_rimorchio])
+    
+    
+class Scarico_misti(models.Model): ## programmazione delle attività di selezione
     id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     data_ora = models.DateTimeField(verbose_name = "orario previsto",validators=[validate_date]) 
     turno = models.PositiveSmallIntegerField(verbose_name = "turno previsto") # turno in cui avviene lo scarico
-    cer = models.PositiveIntegerField(verbose_name = "CER")
+    cer = models.PositiveIntegerField(verbose_name = "CER",default = "150106")
     quantità = models.PositiveIntegerField(verbose_name = "quantità prevista")
-    
-    # NB: il fir della missione sarà disponibile solo al suo completamento?
-    num_fiscale = models.ForeignKey(fir, on_delete=models.PROTECT)
-    
+        
     def validate_date(self):
         now = timezone.now()
         if self.data_ora <= now:
@@ -77,7 +111,10 @@ class Scarico(models.Model):
             return True
         else:
             return False
+        
 
+"""
+        
 class Composizione_Scarico(models.Model):
     num_fiscale = models.ForeignKey(fir, on_delete=models.CASCADE)
     foglia = models.FloatField(validators=[MinValueValidator(0),MaxValueValidator(1)],)
@@ -90,7 +127,6 @@ class Composizione_Scarico(models.Model):
     minuteria = models.FloatField(validators=[MinValueValidator(0),MaxValueValidator(1)],)
     sovvallo = models.FloatField(validators=[MinValueValidator(0),MaxValueValidator(1)],)
 
-
     ## Aggiungere Check Constraints for the Sum of Percentage Fields
     ## Come spiegato al link:
     ## https://adamj.eu/tech/2020/03/10/django-check-constraints-sum-percentage-fields/
@@ -102,12 +138,12 @@ class Composizione_Scarico(models.Model):
             raise ValidationError(
                 ('Somma delle percentuali di materiali diversa da 1'),
                 params={'Somma delle percentuali inserite': somma},)
-            
+       
 
 class venditaMPS(models.Model):
     id_fattura   = models.CharField(max_length=50,primary_key=True)
     mese_vendita = models.PositiveIntegerField(validators=[MinValueValidator(1),MaxValueValidator(12)],)
-    descriione   = models.CharField(max_length=200)
+    descrizione   = models.CharField(max_length=200)
     massa =  models.PositiveIntegerField(verbose_name = "quantità venduta")
     unità_misura = models.CharField(max_length=200)
     prezzo_unitario = models.FloatField(validators=[MinValueValidator(0)],)
@@ -170,10 +206,9 @@ class Profit_tab(models.Model):
         if not self.profitto_totale:
             self.profitto_totale = self.get_profitto()
         super(self).save(*args, **kwargs) # il vero metodo save
+        
     
-
-    
-
+"""
     
     
 """ 
