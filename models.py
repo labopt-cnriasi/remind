@@ -35,7 +35,7 @@ class Trasportatore(models.Model):
     id_trasportatore = models.CharField(max_length=50,primary_key=True) #Innocenti / altri
     indirizzo = models.CharField(max_length=50)
     
-class mezzi(models.Model):
+class Mezzi(models.Model):
     targa = models.CharField(max_length=50,primary_key=True) 
     is_rimorchio = models.BooleanField(default = False)
     nome_trasportatore = models.ForeignKey(Trasportatore,on_delete=models.PROTECT) # il proprietario 
@@ -45,7 +45,7 @@ class mezzi(models.Model):
         if self.is_rimorchio == True:
             return False
 
-class cer(models.Model):
+class Cer(models.Model):
     id_cer = models.CharField(verbose_name = "CER",max_length=50,primary_key=True)
     descrizione = models.CharField(max_length = 100) ## definifare validator da lista di ammissibili
     
