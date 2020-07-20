@@ -93,25 +93,24 @@ class fir(models.Model):
     
 class Scarico_misti(models.Model): ## programmazione delle attività di selezione
     id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    data_ora = models.DateTimeField(verbose_name = "orario previsto",validators=[validate_date]) 
-    turno = models.PositiveSmallIntegerField(verbose_name = "turno previsto") # turno in cui avviene lo scarico
-    cer = models.PositiveIntegerField(verbose_name = "CER",default = "150106")
+    data = models.DateField(verbose_name = "data prevista",validators=[validate_date]) # data in cui si prevede avvenga lo scarico
+    turno = models.PositiveSmallIntegerField(verbose_name = "turno previsto") # turno in cui si prevede avvenga lo scarico
     quantità = models.PositiveIntegerField(verbose_name = "quantità prevista")
         
     def validate_date(self):
-        now = timezone.now()
-        if self.data_ora <= now:
+        today = date.today()
+        if self.data <= now:
             raise ValidationError(
-                ('Orario previsto non ammissibile'),
-                params={'valore': self.data_ora},)
-    
+                ('Data prevista non ammissibile'),
+                params={'valore': self.data},)
+""" 
     def previsto_in_orizzonte(self,orizzonte):
         now = timezone.now()
-        if (now <= self.data_ora) and  (self.data_ora <= now + datetime.timedelta(days=orizzonte)):
+        if (now <= self.data) and  (self.data <= now + datetime.timedelta(days=orizzonte)):
             return True
         else:
             return False
-        
+"""       
 
 """
         
