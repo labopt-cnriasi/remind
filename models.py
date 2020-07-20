@@ -66,10 +66,10 @@ class Missione(models.Model): ## programmazione
                 ('data prevista non ammissibile'),
                 params={'valore': self.data},)
 
-class fir(models.Model):
+class Fir(models.Model):
     num_fiscale = models.CharField(max_length=50,primary_key=True)
     uscita = models.ForeignKey(Missione, on_delete=models.PROTECT)
-    cer = models.ForeignKey(cer, on_delete=models.PROTECT)
+    cer = models.ForeignKey(Cer, on_delete=models.PROTECT)
     peso_netto = models.PositiveIntegerField()
     id_produttore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
     id_smaltitore = models.ForeignKey(Cliente, on_delete=models.PROTECT)
@@ -87,8 +87,8 @@ class fir(models.Model):
                 ('La targa inserita non corrisponde ad un rimorchio'),
                 params={'valore': self.targa_rimorchio},)      
             
-    targa_automezzo = models.ForeignKey(mezzi, on_delete=models.PROTECT,validators = [val_automezzo])
-    targa_rimorchio = models.ForeignKey(mezzi, on_delete=models.PROTECT,validators = [val_rimorchio])
+    targa_automezzo = models.ForeignKey(Mezzi, on_delete=models.PROTECT,validators = [val_automezzo])
+    targa_rimorchio = models.ForeignKey(Mezzi, on_delete=models.PROTECT,validators = [val_rimorchio])
     
     
 class Scarico_misti(models.Model): ## programmazione delle attività di selezione
