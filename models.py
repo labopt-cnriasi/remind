@@ -32,6 +32,7 @@ class Cliente(models.Model):
     timewindow_LB  = models.TimeField(default=datetime.time(9 ,00))
     timewindow_UB  = models.TimeField(default=datetime.time(17,00))
     tempo_servizio = models.IntegerField(validators=[MinValueValidator(0)],default = 30)
+    #verificare
     
     
 class Trasportatore(models.Model):
