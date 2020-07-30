@@ -1,0 +1,332 @@
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<!--{% for missione in missioni %}-->
+<!--    {{missione.Client_origin}} in data {{missione.date}} <br>-->
+<!--{% endfor %}-->
+
+
+<form action="{% url 'app1' %}" method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned ">
+        
+        
+        
+            <div class="form-row field-horizon_LB">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_horizon_LB">Horizon LB:</label>
+                            
+                                <input type="date" name="horizon_LB" class="vDateField" size="10" required="" id="id_horizon_LB"><span class="datetimeshortcuts">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-horizon_UB">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_horizon_UB">Horizon UB:</label>
+                            
+                                <input type="date" name="horizon_UB" class="vDateField" size="10" required="" id="id_horizon_UB"><span class="datetimeshortcuts">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-dailyshifts">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_dailyshifts">Dailyshifts:</label>
+                            
+                                <input type="number" name="dailyshifts" value="2" class="vIntegerField" min="0" required="" id="id_dailyshifts">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-shift_1_hours">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_shift_1_hours">Shift 1 hours:</label>
+                            
+                                <input type="number" name="shift_1_hours" value="6" class="vIntegerField" min="0" required="" id="id_shift_1_hours">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-shift_2_hours">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_shift_2_hours">Shift 2 hours:</label>
+                            
+                                <input type="number" name="shift_2_hours" value="3" class="vIntegerField" min="0" required="" id="id_shift_2_hours">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-shift_3_hours">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_shift_3_hours">Shift 3 hours:</label>
+                            
+                                <input type="number" name="shift_3_hours" value="0" class="vIntegerField" min="0" required="" id="id_shift_3_hours">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-operator_wage">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_operator_wage">Operator wage:</label>
+                            
+                                <input type="number" name="operator_wage" value="15" class="vIntegerField" min="0" required="" id="id_operator_wage">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-max_operators">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_max_operators">Max operators:</label>
+                            
+                                <input type="number" name="max_operators" value="8" class="vIntegerField" min="0" required="" id="id_max_operators">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-min_op_sort1">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_min_op_sort1">Min op sort1:</label>
+                            
+                                <input type="number" name="min_op_sort1" value="3" class="vIntegerField" min="0" required="" id="id_min_op_sort1">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-min_op_sort2">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_min_op_sort2">Min op sort2:</label>
+                            
+                                <input type="number" name="min_op_sort2" value="6" class="vIntegerField" min="0" required="" id="id_min_op_sort2">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-firstTO2nd_sort">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_firstTO2nd_sort">FirstTO2nd sort:</label>
+                            
+                                <input type="number" name="firstTO2nd_sort" value="5" class="vIntegerField" min="0" required="" id="id_firstTO2nd_sort">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-setup_sort1">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_setup_sort1">Setup sort1:</label>
+                            
+                                <input type="number" name="setup_sort1" value="7" class="vIntegerField" required="" id="id_setup_sort1">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-setup_sort2">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_setup_sort2">Setup sort2:</label>
+                            
+                                <input type="number" name="setup_sort2" value="15" class="vIntegerField" required="" id="id_setup_sort2">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-overfill_treshold">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_overfill_treshold">Overfill treshold:</label>
+                            
+                                <input type="number" name="overfill_treshold" value="50" class="vIntegerField" min="0" required="" id="id_overfill_treshold">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-finalstock_treshold">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_finalstock_treshold">Finalstock treshold:</label>
+                            
+                                <input type="number" name="finalstock_treshold" value="10" class="vIntegerField" min="0" required="" id="id_finalstock_treshold">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-sort1_capacity">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_sort1_capacity">Sort1 capacity:</label>
+                            
+                                <input type="number" name="sort1_capacity" value="260" class="vIntegerField" min="0" required="" id="id_sort1_capacity">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-sort2_capacity">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_sort2_capacity">Sort2 capacity:</label>
+                            
+                                <input type="number" name="sort2_capacity" value="220" class="vIntegerField" min="0" required="" id="id_sort2_capacity">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-sort1_maxstock">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_sort1_maxstock">Sort1 maxstock:</label>
+                            
+                                <input type="number" name="sort1_maxstock" value="60000" class="vIntegerField" min="0" required="" id="id_sort1_maxstock">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+            <div class="form-row field-sort2_maxstock">
+                
+                
+                    <div>
+                        
+                        
+                            <label class="required" for="id_sort2_maxstock">Sort2 maxstock:</label>
+                            
+                                <input type="number" name="sort2_maxstock" value="10000" class="vIntegerField" min="0" required="" id="id_sort2_maxstock">
+                            
+                        
+                        
+                    </div>
+                
+            </div>
+        
+    </fieldset>
+    <input type="submit" value="Invia" 
+     name="Submit" id="frm1_submit" />
+
+</form>
+
+{% if scarichi_prev %}
+    scarichi previsti: <br>
+    {% for scarico in scarichi_prev %}
+    {{scarico.id_Client}}<br>
+    {%endfor%}
+{%endif%}
