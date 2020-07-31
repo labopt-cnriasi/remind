@@ -10,6 +10,7 @@ import gurobi as GRB
 from gurobipy import *
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 
 cwd = os.getcwd()  # Get the current working directory (cwd)
 files = os.listdir(cwd)  # Get all the files in that directory
@@ -34,17 +35,16 @@ files = os.listdir(cwd)  # Get all the files in that directory
 # h_j^i : slope of the i-th part of linearization of the buffer j stock cost curve [..list..]
 
 
-
-def sorting_model(input_app,scarichi_previsti):
+def sorting_model(input_app,arrivals):
 
     GapTol = 1e-3
     TimeLimit = 600
 
     deltadays = (input_app.horizon_UB - input_app.horizon_LB).days + 1
-    TH = deltadays*P
 
     J = 2 #two default sorting stages
     P = input_app.dailyshifts
+    TH = deltadays * P
     sigma = [input_app.shift_1_hours,input_app.shift_2_hours,input_app.shift_3_hours]
     sigma = sigma[:P]
 
@@ -53,7 +53,7 @@ def sorting_model(input_app,scarichi_previsti):
         T[p] = np.arange(p, TH, P)
         p = p + 1
 
-    alpha = [1,input_app.firstTO2nd_sort]
+    alpha = [1,input_app.firstTO2nd_sort/100]
     S = [input_app.sort1_maxstock,input_app.sort2_maxstock]
     K = [input_app.sort1_capacity,input_app.sort2_capacity]
     SK = np.zeros((J,P)) #Selection single worker's shiftly productive capacity
@@ -115,6 +115,10 @@ def sorting_model(input_app,scarichi_previsti):
         dh[j, 0] = 0.005
         dh[j, 1] = 0.2
 
+    C_prod = True
+    C_stock = True
+
+    m = Model('WFA')
 
     # VARIABLES
 
@@ -236,7 +240,7 @@ def sorting_model(input_app,scarichi_previsti):
     ################################################# RESULTS #################################################
 
     if status == 2:  # OPTIMAL
-        name_lp = "WFA_test_" + str(TH) + '_' + type_A + '_' + cost_labels[3] + " storage costs.lp"
+        name_lp = "WFA_test_" + str(TH) + '_' + '_' + cost_labels[3] + " storage costs.lp"
         m.write(name_lp)
         optObjVal = m.ObjVal
         bestObjBound = m.ObjBound
@@ -251,7 +255,7 @@ def sorting_model(input_app,scarichi_previsti):
         m.write('WFA_Diego.lp')
     elif status == 3:  # INFEASIBLE
         m.computeIIS()
-        name_ilp = "WFA_test_IIS_" + str(TH) + '_' + type_A + '_' + cost_labels[3] + " storage costs.ilp"
+        name_ilp = "WFA_test_IIS_" + str(TH) + '_' +  '_' + cost_labels[3] + " storage costs.ilp"
         m.write(name_ilp)
         optObjVal = "Infeasible"
         bestObjBound = "Infeasible"
@@ -362,8 +366,7 @@ def sorting_model(input_app,scarichi_previsti):
         opt_values = pd.concat(opt_values_list, axis=1)
         opt_values = round(opt_values, 2)
         opt_values.columns = opt_val_columns
-        opt_values.to_excel(
-            "Output WFA" + "_J = " + str(J) + "_TH = " + str(TH) + '_' + type_A + '_' + cost_labels[3] + ".xlsx")
+        #opt_values.to_excel("Output WFA" + "_J = " + str(J) + "_TH = " + str(TH) + '_' +  '_' + cost_labels[3] + ".xlsx")
 
     else:
         opt_values = "no output values found"
@@ -371,7 +374,11 @@ def sorting_model(input_app,scarichi_previsti):
     #################################################
     m.update()
 
-    return status, gap, optObjVal, bestObjBound, Runtime, IterCount, NodeCount, NumConstrs, NumVars, NumBinVar, NumIntVar, opt_values
+
+
+    return y_opt, x_opt, u_opt
+
+    # return status, gap, optObjVal, bestObjBound, Runtime, IterCount, NodeCount, NumConstrs, NumVars, NumBinVar, NumIntVar, opt_values
 
 
 ##################################################################################################
