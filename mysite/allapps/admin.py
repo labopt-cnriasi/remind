@@ -129,6 +129,13 @@ class Output_App1Resource(resources.ModelResource):
     class Meta:
         model = Output_App1
 
+class Output_App1Admin(ImportExportModelAdmin):
+    class Meta:
+        model = Output_App1
+
+    list_display = ['input_reference', 'first_sorting', 'second_sorting', 'first_sort_operators',
+                    'second_sort_operators', 'first_sort_amount', 'second_sort_amount']
+
 
 class Input_App2Resource(resources.ModelResource):
     class Meta:

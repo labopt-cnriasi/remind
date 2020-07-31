@@ -4,7 +4,8 @@ from datetime import date
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, int_list_validator
+
 
 # Useful links:
 # https://django-book.readthedocs.io/en/latest/chapter05.html
@@ -178,33 +179,21 @@ class Input_App1(models.Model):
 # output number according to App_1 output list in document "integrazioni informative REMIND"    
 class Output_App1(models.Model):
     input_reference = models.ForeignKey(Input_App1,on_delete=models.CASCADE)
-    date = models.DateField(verbose_name = "date in schedule") #1
-    shift = models.PositiveIntegerField(verbose_name = "shift #",validators=[MaxValueValidator(3)],) #1
-    first_sorting  = models.BooleanField(verbose_name = "first sorting activation")  #1
-    second_sorting = models.BooleanField(verbose_name = "second sorting activation") #1
-    
-    def val_first_op(self):
-        if (self.first_sorting == False) and (self.first_sort_operators != 0):
-            raise ValidationError(
-                ('first sorting has not been scheduled for this working shift'))
-        
-    def val_second_op(self):
-        if (self.second_sorting == False) and (self.second_sort_operators != 0):
-            raise ValidationError(
-                ('second sorting has not been scheduled for this working shift'))
-    
-    first_sort_operators  = models.PositiveIntegerField(default = 0,validators=[val_first_op])  #2
-    second_sort_operators = models.PositiveIntegerField(default = 0,validators=[val_second_op]) #2
-    
-    first_sort_amount  = models.PositiveIntegerField(default = 0,validators=[val_first_op])  #3
-    second_sort_amount = models.PositiveIntegerField(default = 0,validators=[val_second_op]) #3
-    
+
+    first_sorting = models.CharField(verbose_name="first sorting activation", max_length=300, validators= [int_list_validator])    # 1
+    second_sorting = models.CharField(verbose_name="second sorting activation", max_length=300, validators= [int_list_validator])  # 1
+
+    first_sort_operators = models.CharField(default=0, max_length=300, validators= [int_list_validator])    # 2
+    second_sort_operators = models.CharField(default=0, max_length=300, validators= [int_list_validator])  # 2
+
+    first_sort_amount = models.CharField(default=0, max_length=300, validators= [int_list_validator])    # 3
+    second_sort_amount = models.CharField(default=0, max_length=300, validators= [int_list_validator])  # 3
+
     class Meta:
         verbose_name = 'Output App 1'
         verbose_name_plural = 'Outputs App 1'
-    
-    
-    
+
+
 # input number according to App_2 input list in document "integrazioni informative REMIND"
 class Input_App2(models.Model):
     date = models.DateField() #6
