@@ -1,8 +1,11 @@
-{% load static %}
+{% extends "base_generic.html" %}
 
+{% block content %}
+{% load static %}
 <form action="{% url 'app1' %}" method="get">
     <input type="submit" value="App 1" 
          name="Submit" id="frm1_submit" />
 </form>
 <button type="button">App 2</button>
 <button type="button">App 3</button>
+{% endblock %}

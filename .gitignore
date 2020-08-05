@@ -1,1 +1,3 @@
 .vscode/settings.json
+mysite/allapps/__pycache__/*
+mysite/mysite/__pycache__/*

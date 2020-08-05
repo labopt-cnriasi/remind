@@ -1,3 +1,6 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
 {% load static bootstrap4 %}
 
 {% bootstrap_css %}
@@ -330,3 +333,5 @@
     {{scarico.id_Client}}<br>
     {%endfor%}
 {%endif%}
+
+{% endblock %}
