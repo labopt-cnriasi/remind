@@ -194,6 +194,17 @@ class Output_App1(models.Model):
         verbose_name_plural = 'Outputs App 1'
 
 
+class Output_App1_detail(models.Model):
+    input_reference = models.ForeignKey(Input_App1,on_delete=models.CASCADE)
+
+    KIND_CHOICHES =  [("in esecuzione", "in esecuzione"),("completato", "completato"),]
+    is_running = models.CharField("stato",max_length=40,choices = KIND_CHOICHES, default= "in esecuzione")
+
+    class Meta:
+        verbose_name = 'Output App 1 - dettaglio'
+        verbose_name_plural = 'Outputs App 1 - dettagli'
+
+
 # input number according to App_2 input list in document "integrazioni informative REMIND"
 class Input_App2(models.Model):
     date = models.DateField() #6

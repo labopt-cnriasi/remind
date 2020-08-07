@@ -27,7 +27,6 @@ urlpatterns = [
     url(r'^$', lambda r: HttpResponseRedirect('home/')),
 
     url(r'home/', views.HomeView.as_view(), name='home'),
-    url(r'applicativo1/', views.App1View.as_view(), name='app1'),
     path('allapps/', include('allapps.urls')),
     path('admin/', admin.site.urls),
 ]

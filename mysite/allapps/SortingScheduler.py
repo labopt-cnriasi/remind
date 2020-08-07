@@ -241,7 +241,7 @@ def sorting_model(input_app,arrivals):
 
     if status == 2:  # OPTIMAL
         name_lp = "WFA_test_" + str(TH) + '_' + '_' + cost_labels[3] + " storage costs.lp"
-        m.write(name_lp)
+        #m.write(name_lp)
         optObjVal = m.ObjVal
         bestObjBound = m.ObjBound
         IterCount = m.IterCount
@@ -252,11 +252,11 @@ def sorting_model(input_app,arrivals):
         NumIntVar = m.NumIntVars
         gap = m.MIPGap
         status = "optimal"
-        m.write('WFA_Diego.lp')
+        #m.write('WFA_Diego.lp')
     elif status == 3:  # INFEASIBLE
         m.computeIIS()
         name_ilp = "WFA_test_IIS_" + str(TH) + '_' +  '_' + cost_labels[3] + " storage costs.ilp"
-        m.write(name_ilp)
+        #m.write(name_ilp)
         optObjVal = "Infeasible"
         bestObjBound = "Infeasible"
         Runtime = "Infeasible"
@@ -280,7 +280,7 @@ def sorting_model(input_app,arrivals):
         NumIntVar = m.getAttr(GRB.Attr.NumIntVars)
         gap = m.MIPGap
         status = "Time limit reached"
-        m.write('WFA_Diego.lp')
+        #m.write('WFA_Diego.lp')
     else:
         altern_status = status
         print("Optimization stopped with status = {}".format(altern_status))
@@ -374,7 +374,14 @@ def sorting_model(input_app,arrivals):
     #################################################
     m.update()
 
+    y_opt.iloc[:, 0] = [int(i) for i in y_opt.iloc[:, 0]]
+    y_opt.iloc[:, 1] = [int(i) for i in y_opt.iloc[:, 1]]
 
+    x_opt.iloc[:, 0] = [int(i) for i in x_opt.iloc[:, 0]]
+    x_opt.iloc[:, 1] = [int(i) for i in x_opt.iloc[:, 1]]
+
+    u_opt.iloc[:, 0] = [int(i) for i in u_opt.iloc[:, 0]]
+    u_opt.iloc[:, 1] = [int(i) for i in u_opt.iloc[:, 1]]
 
     return y_opt, x_opt, u_opt
 

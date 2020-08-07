@@ -11,7 +11,13 @@
 <!--{% endfor %}-->
 
 
-<form action="{% url 'app1' %}" method="post">
+<form action="{% url 'allapps:app1_result' %}" method="get">
+
+<button type = "submit" id="myButton" class="float-right submit-button" >Scheduling Results</button>
+</form>
+
+
+<form action="{% url 'allapps:app1' %}" method="post">
     {% csrf_token %}
     <fieldset class="module aligned ">
         

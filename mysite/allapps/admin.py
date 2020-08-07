@@ -4,7 +4,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from allapps.models import Client, Carrier, Transporter, Cer, Mission, Fir, Mix_unloading
-from allapps.models import Input_App1, Output_App1, Input_App2, Output_App2
+from allapps.models import Input_App1, Output_App1, Output_App1_detail, Input_App2, Output_App2
 from .forms import *
 
 
@@ -137,6 +137,20 @@ class Output_App1Admin(ImportExportModelAdmin):
                     'second_sort_operators', 'first_sort_amount', 'second_sort_amount']
 
 
+class Output_App1_detailResource(resources.ModelResource):
+    class Meta:
+        model = Output_App1_detail
+
+class Output_App1_detailAdmin(ImportExportModelAdmin):
+    class Meta:
+        model = Output_App1_detail
+
+    list_display = ['input_reference', 'is_running']
+
+
+
+
+
 class Input_App2Resource(resources.ModelResource):
     class Meta:
         model = Input_App2
@@ -154,7 +168,8 @@ admin.site.register(Cer, CerAdmin)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(Fir, FirAdmin)
 admin.site.register(Mix_unloading, Mix_unloadingAdmin)
-admin.site.register(Input_App1)
-admin.site.register(Output_App1)
+admin.site.register(Input_App1, Input_App1Admin)
+admin.site.register(Output_App1, Output_App1Admin)
+admin.site.register(Output_App1_detail, Output_App1_detailAdmin)
 admin.site.register(Input_App2)
 admin.site.register(Output_App2)
