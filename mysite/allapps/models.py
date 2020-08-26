@@ -24,11 +24,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator, int_lis
 # the syncdb command:
 # python manage.py syncdb
 
-## Domande per Fra
-#1) Come definire un validatore di input da tendina di ammissibili (come prenseti in DB o definiti in una lista python)
-#2) Come creare gli applicativi dei modelli MILP e VRP con pulsante? :))
-
-
 
 ##### Client può essere un produttore o uno smaltitore
 class Client(models.Model):
@@ -60,24 +55,30 @@ class Carrier(models.Model):
         verbose_name_plural = 'Trasportatori'
     
 class Transporter(models.Model):
-    plate_number = models.CharField("Targa",max_length=50,primary_key=True) 
-    is_trailer = models.BooleanField("è un rimorchio",default = False)
-    carrier_name = models.ForeignKey(Carrier,on_delete=models.PROTECT,verbose_name = "Trasportatore proprietario")  
-    
-    def val_add_trailer(self):
-        if self.is_trailer == True:
-            return False
-    add_trailer = models.BooleanField("può agganciare un rimorchio",default = False,validators=[val_add_trailer],)
-    
+    plate_number = models.CharField("Targa",max_length=50,primary_key=True)
+
+    TYPE_CHOICHES = [("motrice", "motrice"), ("rimorchio", "rimorchio"), ]
+    trasporter_type = models.CharField("Tipologia mezzo",max_length=50, default = False,choices = TYPE_CHOICHES)
+    carrier_name = models.ForeignKey(Carrier,on_delete=models.PROTECT,verbose_name = "Trasportatore proprietario")
+    add_trailer = models.BooleanField("può agganciare un rimorchio",default = False)
+
+    def __str__(self):
+        return self.plate_number
+
+    class Meta:
+        verbose_name = 'mezzo di trasporto'
+        verbose_name_plural = 'mezzi di trasporto'
+
+class Truck(models.Model):
+    head    = models.ForeignKey(Transporter,related_name='head', verbose_name="Motrice", on_delete=models.PROTECT,limit_choices_to={'trasporter_type': "motrice"},)
+    trailer = models.ForeignKey(Transporter,related_name='trailer', verbose_name="Rimorchio", blank=True, null=True, on_delete=models.PROTECT,limit_choices_to={'trasporter_type': "rimorchio"},)
+    load_capacity = models.PositiveIntegerField("Casse trasportabili",default = 1,validators=[MaxValueValidator(2)])
+    is_available = models.BooleanField("disponibilità al servizio",default = True)
+
+
     class Meta:
         verbose_name = 'Automezzo'
         verbose_name_plural = 'Automezzi'
-
-# class Truck(models.Model):
-#     head = models.ForeignKey(Transporter,verbose_name= "Motrice")
-#     trailer = models.ForeignKey(Transporter)
-#     load_capacity = models.PositiveIntegerField()
-#     is_available = models.BooleanField("è disponibilie",default = True)
 
 class Cer(models.Model):
     id_cer = models.CharField(verbose_name = "codice CER",max_length=50,primary_key=True)
@@ -210,35 +211,7 @@ class Input_App2(models.Model):
     date = models.DateField() #6
     time_cost     = models.PositiveIntegerField(default = 15) #7
     distance_cost = models.PositiveIntegerField(default = 15) #8
-    
-    #available_trucks = models.ForeignKey(Truck) ## dovrebbe poter puntare alla lista dei trucks con is_available = True
-        
-    
-    def val_truck(self):
-        if self.truck_1.is_trailer == True:
-            raise ValidationError(
-                ('La targa inserita non corrisponde ad un automezzo'),
-                params={'valore': self.truck_1},)
-            
-    def val_trailer(self):
-        if self.truck_1_trailer.is_trailer == False:
-            raise ValidationError(
-                ('La targa inserita non corrisponde ad un rimorchio'),
-                params={'valore': self.truck_1_trailer},)    
-    
-    truck   = models.ForeignKey(Transporter,related_name = 'truck'  , on_delete=models.PROTECT, validators = [val_truck]) #3
-    trailer = models.ForeignKey(Transporter,related_name = 'trailer', on_delete=models.PROTECT, validators = [val_trailer],default = "nan") #3
-    
-    def val_trailer(self):
-        if (self.truck_trailer != "nan") and (self.load_capacity != 2):
-            raise ValidationError(
-                ('Con il rimorchio aggiunto la capacità è pari a 2 cassoni'),
-                params={'valore': self.load_capacity},)
-            
-    load_capacity = models.PositiveIntegerField(default = 1,validators=[val_trailer,MaxValueValidator(2)]) #3
-    
-    
-    
+
     class Meta:
         verbose_name = 'Input App 2'
         verbose_name_plural = 'Inputs App 2'

@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
-from allapps.models import Client, Carrier, Transporter, Cer, Mission, Fir, Mix_unloading
+from allapps.models import Client, Carrier, Transporter, Truck, Cer, Mission, Fir, Mix_unloading
 from allapps.models import Input_App1, Output_App1, Output_App1_detail, Input_App2, Output_App2
 from .forms import *
 
@@ -45,7 +45,22 @@ class TransporterAdmin(ImportExportModelAdmin):
         model = Transporter
 
     resource_class = TransporterResource
-    list_display = ['plate_number', 'is_trailer', 'carrier_name', 'add_trailer']
+    list_display = ['plate_number', 'trasporter_type', 'carrier_name', 'add_trailer']
+
+
+##############################################################################
+
+class TruckResource(resources.ModelResource):
+    class Meta:
+        model = Truck
+
+
+class TruckAdmin(ImportExportModelAdmin):
+    class Meta:
+        model = Truck
+
+    resource_class = TruckResource
+    list_display = ['head', 'trailer', 'load_capacity', 'is_available']
 
 
 ##############################################################################
@@ -68,7 +83,7 @@ class MissionAdmin(ImportExportModelAdmin):
         model = Mission
 
     form = MissionForm
-    list_display = ['date', 'Client_origin', 'Client_destination']
+    list_display = ['date', 'Client_origin', 'Client_destination','case_number']
     search_fields = ['Client_origin__id_Client', 'Client_destination__id_Client']
     autocomplete_fields = ['Client_origin', 'Client_destination']
 
@@ -151,9 +166,24 @@ class Output_App1_detailAdmin(ImportExportModelAdmin):
 
 
 
+
+class TruckAdmin(ImportExportModelAdmin):
+    class Meta:
+        model = Truck
+
+    resource_class = TruckResource
+    list_display = ['head', 'trailer', 'load_capacity', 'is_available']
+
 class Input_App2Resource(resources.ModelResource):
     class Meta:
         model = Input_App2
+
+class Input_App2Admin(ImportExportModelAdmin):
+    class Meta:
+        model = Input_App2
+
+    resource_class = Input_App2Resource
+    list_display = ['date', 'time_cost', 'distance_cost']
 
 
 class Output_App2Resource(resources.ModelResource):
@@ -164,6 +194,7 @@ class Output_App2Resource(resources.ModelResource):
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Carrier, CarrierAdmin)
 admin.site.register(Transporter, TransporterAdmin)
+admin.site.register(Truck, TruckAdmin)
 admin.site.register(Cer, CerAdmin)
 admin.site.register(Mission, MissionAdmin)
 admin.site.register(Fir, FirAdmin)
@@ -171,5 +202,5 @@ admin.site.register(Mix_unloading, Mix_unloadingAdmin)
 admin.site.register(Input_App1, Input_App1Admin)
 admin.site.register(Output_App1, Output_App1Admin)
 admin.site.register(Output_App1_detail, Output_App1_detailAdmin)
-admin.site.register(Input_App2)
+admin.site.register(Input_App2,Input_App2Admin)
 admin.site.register(Output_App2)
