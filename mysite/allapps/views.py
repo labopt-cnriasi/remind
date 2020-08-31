@@ -2,12 +2,13 @@
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.db.models import Sum
-from .models import Mission, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
+from .models import Client, Mission, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
+from .models import Truck, Input_App2, Output_App2
 from datetime import datetime, timedelta
 from .SortingScheduler import sorting_model
-from .tables import Output_App1Table
-from django.shortcuts import render
-
+from .VRP_OSM_DistTime import OSM
+from .RoutePlanner import VRP_model
+import pandas as pd
 
 
 def index(request):
@@ -42,15 +43,7 @@ class App1_outputView(TemplateView):
                                                                             input_reference__horizon_UB=request.POST['horizon_UB'])
         return self.render_to_response(context)
 
-    # def output_list(self, request):
-    #
-    #     queryset = Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
-    #                                           input_reference__horizon_UB=request.POST['horizon_UB'])
-    #     table = Output_App1Table(queryset)
-    #
-    #     return render(request, "app1_output.html", {
-    #         "table": table
-    #     })
+
 
 class App1View(TemplateView):
     template_name = "front-end/app1.html"
@@ -160,3 +153,107 @@ class App1View(TemplateView):
         # context['result'] = result
 
         return self.render_to_response(context)
+
+
+
+class App2View(TemplateView):
+    template_name = "front-end/app2.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['missioni'] = Mission.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        print(request.POST)
+        context['missioni_prev'] = Mission.objects.filter(date = request.POST['date'])
+
+        input_post = request.POST
+
+        input_app2 = Input_App2()
+        input_app2.date = datetime.strptime(input_post['date'], "%Y-%m-%d")
+        input_app2.time_cost = int(input_post['time_cost'])
+        input_app2.distance_cost = int(input_post['distance_cost'])
+        input_app2.save()
+
+        missioni_previste = Mission.objects.filter(date=request.POST['date'])
+
+        if missioni_previste.exists():
+            query_df = pd.DataFrame(list(missioni_previste.values('Client_origin', 'Client_destination', 'case_number')))
+            query_list = list(missioni_previste)
+
+        ID = 0
+        description = 0
+
+        Inno = list(Client.objects.filter(id_Client = "Innocenti"))[0]
+        time_info = [[Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time]]
+        instance = [["Innocenti",ID,description,41.9555,12.7641,0]]
+        for mission in query_list:
+            ID += 1
+            description +=1
+            instance.append([str(mission.Client_origin), ID, description, float(mission.Client_origin.lat), float(mission.Client_origin.long), float(mission.case_number)])
+            time_info.append([mission.Client_origin.timewindow_LB,mission.Client_origin.timewindow_UB,mission.Client_origin.service_time])
+
+        for mission in query_list:
+            ID += 1
+            description +=1
+            instance.append([str(mission.Client_destination), ID, description, float(mission.Client_destination.lat), float(mission.Client_destination.long), - float(mission.case_number)])
+            time_info.append([mission.Client_destination.timewindow_LB,mission.Client_destination.timewindow_UB,mission.Client_destination.service_time])
+
+        ID += 1
+        description += 1
+        instance.append(["Innocenti",ID,description,41.9555,12.7641,0])
+        time_info.append([Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time])
+
+        instance = pd.DataFrame(instance,columns =['node_name',"ID","description","lat","long","demand"])
+        instance = instance.astype({'node_name': str, 'ID': int, 'description': int, 'lat':float, 'long':float, 'demand': int})
+
+        demand = instance["demand"].to_list()
+        instance_toOSM = instance[["ID","description","lat","long"]]
+
+        instance_toOSM.to_excel("input_test.xlsx")
+
+        distance, duration = OSM(instance_toOSM)
+
+        trucks_info = []
+        available_trucks = list(Truck.objects.filter(is_available = True))
+        for truck in available_trucks:
+            trucks_info.append(truck.load_capacity)
+
+        solver = "GRB"  # GRB o CBC
+        gap = 1e-4
+        time_limit = 100
+
+        status, performances, var_results, x_opt, T_opt, L_opt = VRP_model(distance,duration,demand,time_info,trucks_info, solver, gap, time_limit)
+
+        print("ciao")
+
+        return self.render_to_response(context), x_opt, T_opt, L_opt
+
+
+class App2_outputView(TemplateView):
+    template_name = "front-end/app2_output.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['app1_output'] = Output_App1.objects.all()
+        context['app1_output_detail'] = Output_App1_detail.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+
+        context['output_result'] = Output_App2.objects.all()
+
+        return self.render_to_response(context)
+
+
