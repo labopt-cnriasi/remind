@@ -2,12 +2,13 @@
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.db.models import Sum
-from .models import Client, Mission, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
-from .models import Truck, Input_App2, Output_App2
+from .models import Client, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
+from .models import Truck, Mission, Input_App2, Output_App2#, Output_App2_detail
 from datetime import datetime, timedelta
 from .SortingScheduler import sorting_model
 from .VRP_OSM_DistTime import OSM
 from .RoutePlanner import VRP_model
+from .VRP_results_interpreter import VRP_interpreter, matplolib_graph_plot
 import pandas as pd
 
 
@@ -25,8 +26,8 @@ class App1_outputView(TemplateView):
 
     def get_context_data(self, request, **kwargs):
         context = super(TemplateView, self).get_context_data(request=request, **kwargs)
-        context['app1_output'] = Output_App1.objects.all()
-        context['app1_output_detail'] = Output_App1_detail.objects.all()
+        context['App1_output'] = Output_App1.objects.all()
+        context['App1_output_detail'] = Output_App1_detail.objects.all()
         return context
 
     def get(self, request, *args, **kwargs):
@@ -36,10 +37,10 @@ class App1_outputView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
 
-        context['output_result'] = Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
+        context['App1_output_result'] = Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
                                                               input_reference__horizon_UB=request.POST['horizon_UB'])
 
-        context['output_result_detail'] = Output_App1_detail.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
+        context['App1_output_result_detail'] = Output_App1_detail.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
                                                                             input_reference__horizon_UB=request.POST['horizon_UB'])
         return self.render_to_response(context)
 
@@ -187,62 +188,85 @@ class App2View(TemplateView):
             query_df = pd.DataFrame(list(missioni_previste.values('Client_origin', 'Client_destination', 'case_number')))
             query_list = list(missioni_previste)
 
-        ID = 0
-        description = 0
+            ID = 0
+            description = 0
 
-        Inno = list(Client.objects.filter(id_Client = "Innocenti"))[0]
-        time_info = [[Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time]]
-        instance = [["Innocenti",ID,description,41.9555,12.7641,0]]
-        for mission in query_list:
+            Inno = list(Client.objects.filter(id_Client = "Innocenti"))[0]
+            time_info = [[Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time]]
+            instance = [["Innocenti" ,ID, description, 41.9555, 12.7641, 0, 0]]
+
+            for mission in query_list:
+                ID += 1
+                description +=1
+                instance.append([str(mission.Client_origin), ID, description, float(mission.Client_origin.lat), float(mission.Client_origin.long), float(mission.case_number), int(mission.Client_origin.service_time)])
+                time_info.append([mission.Client_origin.timewindow_LB, mission.Client_origin.timewindow_UB, mission.Client_origin.service_time])
+
+            for mission in query_list:
+                ID += 1
+                description +=1
+                instance.append([str(mission.Client_destination), ID, description, float(mission.Client_destination.lat), float(mission.Client_destination.long), - float(mission.case_number), int(mission.Client_destination.service_time)])
+                time_info.append([mission.Client_destination.timewindow_LB, mission.Client_destination.timewindow_UB, mission.Client_destination.service_time])
+
             ID += 1
-            description +=1
-            instance.append([str(mission.Client_origin), ID, description, float(mission.Client_origin.lat), float(mission.Client_origin.long), float(mission.case_number)])
-            time_info.append([mission.Client_origin.timewindow_LB,mission.Client_origin.timewindow_UB,mission.Client_origin.service_time])
+            description += 1
+            instance.append(["Innocenti",ID,description,41.9555,12.7641,0,0])
+            time_info.append([Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time])
 
-        for mission in query_list:
-            ID += 1
-            description +=1
-            instance.append([str(mission.Client_destination), ID, description, float(mission.Client_destination.lat), float(mission.Client_destination.long), - float(mission.case_number)])
-            time_info.append([mission.Client_destination.timewindow_LB,mission.Client_destination.timewindow_UB,mission.Client_destination.service_time])
+            instance = pd.DataFrame(instance,columns =['node_name',"ID","description","lat","long","demand","service time"])
+            instance = instance.astype({'node_name': str, 'ID': int, 'description': int, 'lat':float, 'long':float, 'demand': int, 'service time':int})
 
-        ID += 1
-        description += 1
-        instance.append(["Innocenti",ID,description,41.9555,12.7641,0])
-        time_info.append([Inno.timewindow_LB, Inno.timewindow_UB, Inno.service_time])
+            demand = instance["demand"].to_list()
+            instance_toOSM = instance[["ID","description","lat","long"]]
 
-        instance = pd.DataFrame(instance,columns =['node_name',"ID","description","lat","long","demand"])
-        instance = instance.astype({'node_name': str, 'ID': int, 'description': int, 'lat':float, 'long':float, 'demand': int})
+            instance_toOSM.to_excel("input_test.xlsx")
 
-        demand = instance["demand"].to_list()
-        instance_toOSM = instance[["ID","description","lat","long"]]
+            distance, duration = OSM(instance_toOSM)
 
-        instance_toOSM.to_excel("input_test.xlsx")
+            distance.to_excel("distance_test.xlsx")
+            duration.to_excel("duration_test.xlsx")
 
-        distance, duration = OSM(instance_toOSM)
+            trucks_info = []
+            trucks_plates = []
+            available_trucks = list(Truck.objects.filter(is_available = True))
+            for truck in available_trucks:
+                trucks_info.append(truck.load_capacity)
+                trucks_plates.append([truck.head, truck.trailer])
 
-        trucks_info = []
-        available_trucks = list(Truck.objects.filter(is_available = True))
-        for truck in available_trucks:
-            trucks_info.append(truck.load_capacity)
+            trucks_plates = pd.DataFrame(trucks_plates,columns =['head',"trailer"])
+            trucks_plates = trucks_plates.astype({'head': str, 'trailer': str})
 
-        solver = "GRB"  # GRB o CBC
-        gap = 1e-4
-        time_limit = 100
+            solver = "GRB"  # GRB o CBC
+            gap = 1e-4
+            time_limit = 100
 
-        status, performances, var_results, x_opt, T_opt, L_opt = VRP_model(distance,duration,demand,time_info,trucks_info, solver, gap, time_limit)
+            # output_app2_detail = Output_App2_detail(input_reference=input_app2)
+            # output_app2_detail.save()
 
-        print("ciao")
+            status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance,duration,demand,time_info,trucks_info, solver, gap, time_limit)
 
-        return self.render_to_response(context), x_opt, T_opt, L_opt
 
+            VRP_results = VRP_interpreter(instance, trucks_plates, x_opt, t_opt, l_opt, distance, duration)
+
+
+            # output_app2_detail.is_running = "completato"
+            # output_app2_detail.save()
+
+
+
+
+        else:
+            context['missioni_prev'] = "non sono previste missioni per la data selezionata"
+            return self.render_to_response(context)
+
+        return self.render_to_response(context), prova
 
 class App2_outputView(TemplateView):
     template_name = "front-end/app2_output.html"
 
     def get_context_data(self, request, **kwargs):
         context = super(TemplateView, self).get_context_data(request=request, **kwargs)
-        context['app1_output'] = Output_App1.objects.all()
-        context['app1_output_detail'] = Output_App1_detail.objects.all()
+        context['App2_output'] = Output_App2.objects.all()
+        context['App2_output_detail'] = Output_App2_detail.objects.all()
         return context
 
     def get(self, request, *args, **kwargs):
@@ -252,8 +276,9 @@ class App2_outputView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
 
-        context['output_result'] = Output_App2.objects.all()
+        context['APP1_output_result'] = Output_App1.objects.filter(input_reference__date=request.POST['horizon_LB'])
+
+        context['APP1_output_result_detail'] = Output_App1_detail.objects.filter(input_reference__date=request.POST['horizon_LB'])
 
         return self.render_to_response(context)
-
 

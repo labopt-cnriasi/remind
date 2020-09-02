@@ -220,6 +220,8 @@ class Input_App2(models.Model):
 
 # output number according to App_2 output list in document "integrazioni informative REMIND"
 class Output_App2(models.Model):
+    #input_reference = models.ForeignKey(Input_App2, on_delete=models.CASCADE)
+
     truck = models.ForeignKey(Input_App2,on_delete=models.PROTECT) #1
     mission = models.ForeignKey(Mission,on_delete=models.PROTECT) #1
     origin_visit_order = models.CharField(max_length=100)      #2
@@ -228,6 +230,17 @@ class Output_App2(models.Model):
     class Meta:
         verbose_name = 'Output App 2'
         verbose_name_plural = 'Outputs App 2'
+
+
+# class Output_App2_detail(models.Model):
+#     input_reference = models.ForeignKey(Input_App2,on_delete=models.CASCADE)
+#
+#     KIND_CHOICHES =  [("in esecuzione", "in esecuzione"),("completato", "completato"),]
+#     is_running = models.CharField("stato",max_length=40,choices = KIND_CHOICHES, default= "in esecuzione")
+#
+#     class Meta:
+#         verbose_name = 'Output App 2 - dettaglio'
+#         verbose_name_plural = 'Outputs App 2 - dettagli'
 
 """
         

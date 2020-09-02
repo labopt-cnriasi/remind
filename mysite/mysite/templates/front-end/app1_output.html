@@ -33,16 +33,16 @@ Inserisci il periodo di cui vuoi conoscere la programmazione ottimale delle atti
 
     </form>
     <br>
-    {% if output_result_detail %}
+    {% if App1_output_result_detail %}
         Stato di completamento :
-        {% for state in output_result_detail %}
+        {% for state in App1_output_result_detail %}
             <font color="darkgreen"> {{ state.is_running }}</font><br>
         {% endfor %}
     {% endif %}
     <br>
-    {% if output_result %}
+    {% if App1_output_result %}
         Soluzione ottima: <br>
-        {% for results in output_result %}
+        {% for results in App1_output_result %}
             {{ results.first_sorting|join:" " }}<br>
             {{ results.second_sorting|join:" " }}<br>
             {{ results.first_sort_operators|join:" " }}<br>
@@ -54,9 +54,9 @@ Inserisci il periodo di cui vuoi conoscere la programmazione ottimale delle atti
 
     <br>
 
-    {% if output_result %}
+    {% if App1_output_result %}
         Soluzione ottima: <br>
-        {% for results in output_result %}
+        {% for results in App1_output_result %}
             <table border='1'>
                 <tr>
                     <th style="text-align:center">Attivazione prima selezione</th>
