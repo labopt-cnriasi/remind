@@ -1,0 +1,82 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+
+[ ricorda di aggiornare gli automezzi disponibili e di attivare il server delle mappe]
+<br>
+Seleziona il giorno per cui vuoi generare i percorsi ottimi delle missioni di recupero casse
+<br>
+per test seleziona la data del 30 agosto 2020
+<br>
+<br>
+
+<form action="{% url 'allapps:app2_result' %}" method="get">
+
+<button type = "submit" id="myButton" class="float-right submit-button" >Route Planner Results</button>
+</form>
+
+
+<form action="{% url 'allapps:app2' %}" method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned ">
+
+            <div class="form-row field-date">
+                    <div>
+                            <label class="required" for="id_date">Data:</label>
+                                <input type="date" name="date" class="vDateField" size="10" required="" id="id_date"><span class="datetimeshortcuts">
+                    </div>
+            </div>
+
+            <div class="form-row field-time_cost">
+                    <div>
+                            <label class="required" for="id_time_cost">Costo orario:</label>
+                                <input type="number" name="time_cost" value="15" class="vIntegerField" min="0" required="" id="id_time_cost">
+                    </div>
+            </div>
+
+            <div class="form-row field-horizon_UB">
+                    <div>
+                            <label class="required" for="id_distance_cost">Costo al km:</label>
+                                <input type="number" name="distance_cost" value="15" class="vIntegerField" min="0" required="" id="id_distance_cost">
+                    </div>
+            </div>
+
+    </fieldset>
+    <br>
+    <input type="submit" value="Genera percorsi"
+     name="Submit" id="frm1_submit" />
+
+</form>
+
+{% if model_running %}
+    Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br>
+    <br>
+    Per conoscere i dettagli delle programmazione logistica:
+    <form action="{% url 'allapps:app2_result' %}" method="get">
+    <button type = "submit" id="myButton" class="float-left submit-button" >instradamento ottimale</button>
+    </form>
+    <br>
+{%endif%}
+
+<br>
+
+{% if missioni_prev %}
+    Missioni previste per la data selezionata: <br>
+    {% for missione in missioni_prev %}
+        {% if missione.case_number == 1 %}
+            Ritiro di {{missione.case_number}} cassa presso {{missione.Client_origin}} da conferire a {{missione.Client_destination}}<br>
+        {%endif%}
+        {% if missione.case_number != 1 %}
+            Ritiro di {{missione.case_number}} casse presso {{missione.Client_origin}} da conferire a {{missione.Client_destination}}<br>
+        {%endif%}
+    {%endfor%}
+{%endif%}
+
+
+
+{% endblock %}

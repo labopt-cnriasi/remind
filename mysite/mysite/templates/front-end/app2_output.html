@@ -1,0 +1,70 @@
+{% extends "base_generic.html" %}
+{% load static %}
+{% block content %}
+
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+Seleziona il giorno di cui vuoi conoscere i percorsi ottimi delle missioni di trasporto
+<br>
+<br>
+
+    <form action="{% url 'allapps:app2_result' %}" method="post">
+        {% csrf_token %}
+        <fieldset class="module aligned ">
+
+            <div class="form-row field-date">
+                <div>
+                    <label class="required" for="id_date">&emsp;Data:</label>
+                    <input type="date" name="date" class="vDateField" size="10" required=""
+                           id="id_date"><span class="datetimeshortcuts">
+                </div>
+            </div>
+
+        </fieldset>
+        <br>
+        <input type="submit" value="Cerca"
+               name="Submit" id="frm_submit"/>
+
+    </form>
+
+    <br>
+
+    {% if App2_output_result_detail %}
+        Stato di completamento : <font color="darkgreen"> {{ App2_output_result_detail.is_running }}</font><br>
+    {% endif %}
+
+    <br>
+    {% if App2_output_result %}
+        Soluzione ottima: <br>
+        {% for result in App2_output_result %}
+            Automezzo: {{ result.truck}}
+            {% if result.truck_is_used == False %}
+            <font color="darkred">  Non è necessario utilizzare questo automezzo </font><br>
+            {%endif%}
+            {% if result.truck_is_used == True %}
+            <font color="darkblue"> Rotta ottima: </font><br>
+            {{ result.visit_order|join:" " }}<br>
+            {{ result.node_name|join:" " }}<br>
+            {{ result.lat|join:" " }}<br>
+            {{ result.long|join:" " }}<br>
+            {{ result.load_unload|join:" " }}<br>
+            {{ result.arrival_time|join:" " }}<br>
+            {{ result.departure_time|join:" " }}<br>
+            {{ result.leaving_load|join:" " }}<br>
+
+            {%endif%}
+
+        {% endfor %}
+    {% endif %}
+
+
+
+    <br>
+
+
+
+
+{% endblock %}
