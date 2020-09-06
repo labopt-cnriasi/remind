@@ -4,7 +4,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
 from allapps.models import Client, Carrier, Transporter, Truck, Cer, Mission, Fir, Mix_unloading
-from allapps.models import Input_App1, Output_App1, Output_App1_detail, Input_App2, Output_App2
+from allapps.models import Input_App1, Output_App1, Output_App1_detail, Input_App2, Output_App2, Output_App2_detail
 from .forms import *
 
 
@@ -61,6 +61,7 @@ class TruckAdmin(ImportExportModelAdmin):
 
     resource_class = TruckResource
     list_display = ['head', 'trailer', 'load_capacity', 'is_available']
+    search_fields = ['head__plate_number', 'trailer__plate_number']
 
 
 ##############################################################################
@@ -89,7 +90,6 @@ class MissionAdmin(ImportExportModelAdmin):
 
 
 ##############################################################################
-
 class FirResource(resources.ModelResource):
     class Meta:
         model = Fir
@@ -105,8 +105,6 @@ class FirAdmin(ImportExportModelAdmin):
 
 
 ##############################################################################
-
-
 class Mix_unloadingAdmin(ImportExportModelAdmin):
     class Meta:
         model = Mix_unloading
@@ -139,7 +137,6 @@ class Input_App1Admin(ImportExportModelAdmin):
 
 
 ##############################################################################
-
 class Output_App1Resource(resources.ModelResource):
     class Meta:
         model = Output_App1
@@ -151,7 +148,7 @@ class Output_App1Admin(ImportExportModelAdmin):
     list_display = ['input_reference', 'first_sorting', 'second_sorting', 'first_sort_operators',
                     'second_sort_operators', 'first_sort_amount', 'second_sort_amount']
 
-
+##############################################################################
 class Output_App1_detailResource(resources.ModelResource):
     class Meta:
         model = Output_App1_detail
@@ -161,11 +158,10 @@ class Output_App1_detailAdmin(ImportExportModelAdmin):
         model = Output_App1_detail
 
     list_display = ['input_reference', 'is_running']
-
-
-
-
-
+##############################################################################
+class TruckResource(resources.ModelResource):
+    class Meta:
+        model = Truck
 
 class TruckAdmin(ImportExportModelAdmin):
     class Meta:
@@ -173,7 +169,10 @@ class TruckAdmin(ImportExportModelAdmin):
 
     resource_class = TruckResource
     list_display = ['head', 'trailer', 'load_capacity', 'is_available']
+    search_fields = ['head__plate_number', 'trailer__plate_number']
 
+
+##############################################################################
 class Input_App2Resource(resources.ModelResource):
     class Meta:
         model = Input_App2
@@ -184,13 +183,37 @@ class Input_App2Admin(ImportExportModelAdmin):
 
     resource_class = Input_App2Resource
     list_display = ['date', 'time_cost', 'distance_cost']
+    search_fields = ['date']
 
-
+##############################################################################
 class Output_App2Resource(resources.ModelResource):
     class Meta:
         model = Output_App2
 
+class Output_App2Admin(ImportExportModelAdmin):
+    class Meta:
+        model = Output_App2
 
+    resource_class = Output_App2Resource
+    list_display = ['input_reference', 'truck', 'truck_is_used', 'visit_order',
+                    'node_name', 'lat', 'long', 'load_unload', 'arrival_time',
+                    'departure_time', 'leaving_load']
+    search_fields = ['input_reference__date','truck__head__plate_number', 'truck__trailer__plate_number']
+
+    autocomplete_fields = ['input_reference','truck']
+##############################################################################
+class Output_App2_detailResource(resources.ModelResource):
+    class Meta:
+        model = Output_App2_detail
+
+class Output_App2_detailAdmin(ImportExportModelAdmin):
+    class Meta:
+        model = Output_App2_detail
+
+    list_display = ['input_reference', 'is_running']
+
+################
+# ##############################################################
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Carrier, CarrierAdmin)
 admin.site.register(Transporter, TransporterAdmin)
@@ -203,4 +226,6 @@ admin.site.register(Input_App1, Input_App1Admin)
 admin.site.register(Output_App1, Output_App1Admin)
 admin.site.register(Output_App1_detail, Output_App1_detailAdmin)
 admin.site.register(Input_App2,Input_App2Admin)
-admin.site.register(Output_App2)
+admin.site.register(Output_App2,Output_App2Admin)
+admin.site.register(Output_App2_detail, Output_App2_detailAdmin)
+

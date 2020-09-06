@@ -3,11 +3,12 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.db.models import Sum
 from .models import Client, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
-from .models import Truck, Mission, Input_App2, Output_App2#, Output_App2_detail
+from .models import Truck, Mission, Input_App2, Output_App2, Output_App2_detail
 from datetime import datetime, timedelta
 from .SortingScheduler import sorting_model
 from .VRP_OSM_DistTime import OSM
 from .RoutePlanner import VRP_model
+from .VRP_Heuristics import load_instance, heur01, heuristic_result_interpreter
 from .VRP_results_interpreter import VRP_interpreter, matplolib_graph_plot
 import pandas as pd
 
@@ -111,9 +112,6 @@ class App1View(TemplateView):
             days_list.append(start_date + timedelta(days=i))
 
         Arrivals = [[], []]
-        # for p in range(P):
-        #     Arrivals[p] = np.arange(p, TH, P)
-        #     p = p + 1
 
         for day in days_list:
             sum_shift_1 = 0
@@ -150,9 +148,6 @@ class App1View(TemplateView):
 
         output_app1.save()
 
-        # result = [y_opt, x_opt, u_opt]
-        # context['result'] = result
-
         return self.render_to_response(context)
 
 
@@ -174,6 +169,9 @@ class App2View(TemplateView):
         print(request.POST)
         context['missioni_prev'] = Mission.objects.filter(date = request.POST['date'])
 
+        # save to context last input "is_running" info for html print
+        context['model_running'] = Output_App2_detail.objects.filter(input_reference__date = request.POST['date']).first
+
         input_post = request.POST
 
         input_app2 = Input_App2()
@@ -185,7 +183,7 @@ class App2View(TemplateView):
         missioni_previste = Mission.objects.filter(date=request.POST['date'])
 
         if missioni_previste.exists():
-            query_df = pd.DataFrame(list(missioni_previste.values('Client_origin', 'Client_destination', 'case_number')))
+            #query_df = pd.DataFrame(list(missioni_previste.values('Client_origin', 'Client_destination', 'case_number')))
             query_list = list(missioni_previste)
 
             ID = 0
@@ -218,12 +216,12 @@ class App2View(TemplateView):
             demand = instance["demand"].to_list()
             instance_toOSM = instance[["ID","description","lat","long"]]
 
-            instance_toOSM.to_excel("input_test.xlsx")
-
             distance, duration = OSM(instance_toOSM)
 
-            distance.to_excel("distance_test.xlsx")
-            duration.to_excel("duration_test.xlsx")
+            ## For debug purposes
+            # instance_toOSM.to_excel("input_test.xlsx")
+            # distance.to_excel("distance_test.xlsx")
+            # duration.to_excel("duration_test.xlsx")
 
             trucks_info = []
             trucks_plates = []
@@ -239,26 +237,79 @@ class App2View(TemplateView):
             gap = 1e-4
             time_limit = 100
 
-            # output_app2_detail = Output_App2_detail(input_reference=input_app2)
-            # output_app2_detail.save()
+            output_app2_detail = Output_App2_detail(input_reference=input_app2)
+            output_app2_detail.save()
 
-            status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance,duration,demand,time_info,trucks_info, solver, gap, time_limit)
+            ### TO DO LIST
+            #1) Come permettere la scelta fra più solutori: una tabella che contiene quelli disponibili ? ==> selezione a tendina tra gli acquistati
+            #2) Come aggiungere come output dell'euristica le informazioni temporarli di visita dei nodi: arrivo e ripartenza
+            #3) Creare tabella anagrafica unità locali clienti con dati di lat e long + numerazione unità locale
+            #4) Usare  django-tables2 per il rendere delle tabelle di output della prima e seconda app ( link:  https://django-tables2.readthedocs.io/en/latest/pages/tutorial.html)
+            # usare alternativamente result[2].to_html('df_result_table_'+str(count)+'.html')
 
-
+            ## VRP_model
+            status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance, duration, demand, time_info, trucks_info, solver, gap, time_limit)
             VRP_results = VRP_interpreter(instance, trucks_plates, x_opt, t_opt, l_opt, distance, duration)
 
+            ## VRP_heuristic
+            data_instance = load_instance(distance,duration,demand,time_info, trucks_info)
+            tours = heur01(data_instance)
+            HEUR_results = heuristic_result_interpreter(instance,trucks_plates, tours, distance, duration)
 
-            # output_app2_detail.is_running = "completato"
-            # output_app2_detail.save()
+            output_app2_detail.is_running = "completato"
+            output_app2_detail.save()
 
+            count = 0
+            for result in VRP_results:
 
+                # check if truck considered does not pull a trailer to properly query DB
+                if result[1] == str(None):
+                    truck_object = Truck.objects.filter(head__plate_number=result[0])[0]
+                else:
+                    truck_object = Truck.objects.filter(head__plate_number = result[0],
+                                                        trailer__plate_number = result[1])[0]
 
+                if isinstance(result[2], str) == True:
+
+                    output_app2 = Output_App2(input_reference=input_app2)
+                    output_app2.truck = Truck.objects.get(id=truck_object.id)
+                    output_app2.truck_is_used = False
+
+                    output_app2.visit_order = []
+                    output_app2.node_name = []
+                    output_app2.lat = []
+                    output_app2.long = []
+                    output_app2.load_unload = []
+                    output_app2.arrival_time = []
+                    output_app2.departure_time = []
+                    output_app2.leaving_load = []
+
+                    output_app2.save()
+                    count += 1
+
+                else:
+                    output_app2 = Output_App2(input_reference=input_app2)
+                    output_app2.truck = Truck.objects.get(id=truck_object.id)
+                    output_app2.truck_is_used = True
+
+                    output_app2.visit_order = result[2]["visit order"].to_list()
+                    output_app2.node_name = result[2]["node name"].to_list()
+                    output_app2.lat = result[2]["lat"].to_list()
+                    output_app2.long = result[2]["long"].to_list()
+                    output_app2.load_unload = result[2]["load_unload"].to_list()
+                    output_app2.arrival_time = result[2]["arrival time"].to_list()
+                    output_app2.departure_time = result[2]["departure time"].to_list()
+                    output_app2.leaving_load = result[2]["leaving load"].to_list()
+
+                    output_app2.save()
+
+                    count += 1
 
         else:
             context['missioni_prev'] = "non sono previste missioni per la data selezionata"
             return self.render_to_response(context)
 
-        return self.render_to_response(context), prova
+        return self.render_to_response(context)
 
 class App2_outputView(TemplateView):
     template_name = "front-end/app2_output.html"
@@ -276,9 +327,11 @@ class App2_outputView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
 
-        context['APP1_output_result'] = Output_App1.objects.filter(input_reference__date=request.POST['horizon_LB'])
+        # select input_reference id for selected date: selected id correspond to last input_reference id
+        id = list(Output_App2.objects.filter(input_reference__date=request.POST['date']))[0].input_reference_id
+        context['App2_output_result'] = Output_App2.objects.filter(input_reference__date=request.POST['date'],input_reference__id = id)
 
-        context['APP1_output_result_detail'] = Output_App1_detail.objects.filter(input_reference__date=request.POST['horizon_LB'])
+        context['App2_output_result_detail'] = Output_App2_detail.objects.filter(input_reference__date=request.POST['date']).first
 
         return self.render_to_response(context)
 

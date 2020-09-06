@@ -15,8 +15,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator, int_lis
 # Validators https://docs.djangoproject.com/en/3.0/ref/validators/#minvaluevalidator
 # Model instance reference https://docs.djangoproject.com/en/3.0/ref/models/instances/#validating-objects
 
-# NB: If you make changes to a Django model, you’ll need to make the same 
-# changes inside your database to keep your database consistent with the model. 
+# NB: If you make changes to a Django model, you’ll need to make the same
+# changes inside your database to keep your database consistent with the model.
 # We’ll discuss some strategies for handling this problem later in this chapter.
 #==> https://django-book.readthedocs.io/en/latest/chapter05.html
 
@@ -75,10 +75,18 @@ class Truck(models.Model):
     load_capacity = models.PositiveIntegerField("Casse trasportabili",default = 1,validators=[MaxValueValidator(2)])
     is_available = models.BooleanField("disponibilità al servizio",default = True)
 
-
     class Meta:
         verbose_name = 'Automezzo'
         verbose_name_plural = 'Automezzi'
+
+    def __str__(self):
+
+        if str(self.trailer) == str(None):
+            return str(self.head)
+        else:
+            return str(self.head) + "  " + str(self.trailer)
+
+
 
 class Cer(models.Model):
     id_cer = models.CharField(verbose_name = "codice CER",max_length=50,primary_key=True)
@@ -176,8 +184,8 @@ class Input_App1(models.Model):
         verbose_name = 'Input App 1'
         verbose_name_plural = 'Inputs App 1'
     
-    
-# output number according to App_1 output list in document "integrazioni informative REMIND"    
+
+# output number according to App_1 output list in document "integrazioni informative REMIND"
 class Output_App1(models.Model):
     input_reference = models.ForeignKey(Input_App1,on_delete=models.CASCADE)
 
@@ -212,35 +220,55 @@ class Input_App2(models.Model):
     time_cost     = models.PositiveIntegerField(default = 15) #7
     distance_cost = models.PositiveIntegerField(default = 15) #8
 
+    def __str__(self):
+        date_str = self.date.strftime('%d/%m/%Y')
+        return str(date_str) + " - #" + str(self.id)
+
     class Meta:
         verbose_name = 'Input App 2'
         verbose_name_plural = 'Inputs App 2'
-    
-    
 
-# output number according to App_2 output list in document "integrazioni informative REMIND"
+
+
 class Output_App2(models.Model):
-    #input_reference = models.ForeignKey(Input_App2, on_delete=models.CASCADE)
+    input_reference = models.ForeignKey(Input_App2,on_delete=models.CASCADE)
 
-    truck = models.ForeignKey(Input_App2,on_delete=models.PROTECT) #1
-    mission = models.ForeignKey(Mission,on_delete=models.PROTECT) #1
-    origin_visit_order = models.CharField(max_length=100)      #2
-    destination_visit_order = models.CharField(max_length=100) #2
-    
+    truck = models.ForeignKey(Truck, on_delete=models.PROTECT,default=None)
+
+    truck_is_used = models.BooleanField("utilizzo camion",default = False)
+
+    visit_order = models.CharField(verbose_name= "ordine di visita", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    node_name = models.CharField(verbose_name= "nome destinazione", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    lat = models.CharField(verbose_name= "latitudine", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    long = models.CharField(verbose_name= "longitudine", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    load_unload = models.CharField(verbose_name= "carico/scarico", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    arrival_time = models.CharField(verbose_name= "orario di arrivo", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    departure_time = models.CharField(verbose_name= "orario di partenza", max_length=500, validators= [int_list_validator],default=None,blank=True)
+    leaving_load = models.CharField(verbose_name= "carico alla partenza", max_length=500, validators= [int_list_validator],default=None,blank=True)
+
     class Meta:
         verbose_name = 'Output App 2'
         verbose_name_plural = 'Outputs App 2'
 
+    def __str__(self):
+        date_str = self.input_reference.date.strftime('%d/%m/%Y')
+        return str(date_str) + " - #" + str(self.input_reference.id)
 
-# class Output_App2_detail(models.Model):
-#     input_reference = models.ForeignKey(Input_App2,on_delete=models.CASCADE)
-#
-#     KIND_CHOICHES =  [("in esecuzione", "in esecuzione"),("completato", "completato"),]
-#     is_running = models.CharField("stato",max_length=40,choices = KIND_CHOICHES, default= "in esecuzione")
-#
-#     class Meta:
-#         verbose_name = 'Output App 2 - dettaglio'
-#         verbose_name_plural = 'Outputs App 2 - dettagli'
+
+class Output_App2_detail(models.Model):
+    input_reference = models.ForeignKey(Input_App2,on_delete=models.CASCADE)
+
+    KIND_CHOICHES =  [("in esecuzione", "in esecuzione"),("completato", "completato"),]
+    is_running = models.CharField("stato",max_length=40,choices = KIND_CHOICHES, default= "in esecuzione")
+
+    class Meta:
+        verbose_name = 'Output App 2 - dettaglio'
+        verbose_name_plural = 'Outputs App 2 - dettagli'
+
+    def __str__(self):
+        date_str = self.input_reference.date.strftime('%d/%m/%Y')
+        return str(date_str) + " - #" + str(self.input_reference.id)
+
 
 """
         
