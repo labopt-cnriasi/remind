@@ -3,7 +3,7 @@ import datetime
 from datetime import date
 from django.db import models
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator, int_list_validator
 
 
@@ -44,7 +44,7 @@ class Client(models.Model):
     class Meta:
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clienti'
-    
+
     
 class Carrier(models.Model):
     id_Carrier = models.CharField("ID Trasportatore",max_length=50,primary_key=True) #Innocenti / altri

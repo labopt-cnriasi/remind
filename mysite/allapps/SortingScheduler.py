@@ -369,7 +369,7 @@ def sorting_model(input_app,arrivals):
         #opt_values.to_excel("Output WFA" + "_J = " + str(J) + "_TH = " + str(TH) + '_' +  '_' + cost_labels[3] + ".xlsx")
 
     else:
-        opt_values = "no output values found"
+        return "Infeasible", "Infeasible", "Infeasible"
 
     #################################################
     m.update()
@@ -385,7 +385,6 @@ def sorting_model(input_app,arrivals):
 
     return y_opt, x_opt, u_opt
 
-    # return status, gap, optObjVal, bestObjBound, Runtime, IterCount, NodeCount, NumConstrs, NumVars, NumBinVar, NumIntVar, opt_values
 
 
 ##################################################################################################

@@ -7,6 +7,14 @@
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
+    <style>
+
+    td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+    </style>
 Seleziona il giorno di cui vuoi conoscere i percorsi ottimi delle missioni di trasporto
 <br>
 <br>
@@ -40,31 +48,46 @@ Seleziona il giorno di cui vuoi conoscere i percorsi ottimi delle missioni di tr
     {% if App2_output_result %}
         Soluzione ottima: <br>
         {% for result in App2_output_result %}
-            Automezzo: {{ result.truck}}
+            <hr>
+            Automezzo: <b> {{ result.truck}} </b>
             {% if result.truck_is_used == False %}
             <font color="darkred">  Non è necessario utilizzare questo automezzo </font><br>
             {%endif%}
+
+
             {% if result.truck_is_used == True %}
-            <font color="darkblue"> Rotta ottima: </font><br>
-            {{ result.visit_order|join:" " }}<br>
-            {{ result.node_name|join:" " }}<br>
-            {{ result.lat|join:" " }}<br>
-            {{ result.long|join:" " }}<br>
-            {{ result.load_unload|join:" " }}<br>
-            {{ result.arrival_time|join:" " }}<br>
-            {{ result.departure_time|join:" " }}<br>
-            {{ result.leaving_load|join:" " }}<br>
+            <font color="darkblue"> Rotta ottima: </font>
+                </br>
+                </br>
+        <table border="3" class="dataframe">
+        <thead>
+    <tr style="text-align: center;">
+                <th>Ordine di visita</th>
+                <th>Nome Destinazione</th>
+                <th>Latitudine</th>
+                <th>Longitudine</th>
+                <th>Carico/Scarico</th>
+                <th>Orario di arrivo</th>
+                <th>Orario di partenza</th>
+                <th>Carico alla partenza</th>
 
+            </tr>
+    </thead>
+    <tbody>
+                {% for r in result.table_data %}
+                    <tr>
+                        {% for data_point in r %}
+                        <td> {{  data_point }} </td>
+                        {% endfor  %}
+                    </tr>
+
+                {% endfor %}
+
+</tbody>
+                </table>
             {%endif%}
-
         {% endfor %}
     {% endif %}
-
-
-
     <br>
-
-
-
 
 {% endblock %}

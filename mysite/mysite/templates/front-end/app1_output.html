@@ -37,7 +37,7 @@ Seleziona il periodo di cui vuoi conoscere la programmazione ottimale delle atti
                name="Submit" id="frm_submit"/>
 
     </form>
-    <br>
+    
     {% if App1_output_result_detail %}
         Stato di completamento :
         {% for state in App1_output_result_detail %}
@@ -46,77 +46,36 @@ Seleziona il periodo di cui vuoi conoscere la programmazione ottimale delle atti
     {% endif %}
     <br>
     {% if App1_output_result %}
-        Soluzione ottima: <br>
-        {% for results in App1_output_result %}
-            {{ results.first_sorting|join:" " }}<br>
-            {{ results.second_sorting|join:" " }}<br>
-            {{ results.first_sort_operators|join:" " }}<br>
-            {{ results.second_sort_operators|join:" " }}<br>
-            {{ results.first_sort_amount|join:" " }}<br>
-            {{ results.second_sort_amount|join:" " }}<br>
-        {% endfor %}
-    {% endif %}
+        Soluzione ottima:
+                </br>
+            <hr>
+        <table  border="3" class="dataframe">
+        <thead>
+    <tr style="text-align: center;">
+                <th>Data</th>
+                <th>Turno</th>
+                <th>1a selezione</th>
+                <th>2a selezione</th>
+                <th>operatori 1a sel.</th>
+                <th>operatori 2a sel.</th>
+                <th>Quantità 1a sel.</th>
+                <th>Quantità 2a sel.</th>
 
+            </tr>
+    </thead>
+    <tbody>
+                {% for r in App1_output_result.table_data %}
+                    <tr style="text-align: center;">
+                        {% for data_point in r %}
+                        <td> {{  data_point }} </td>
+                        {% endfor  %}
+                    </tr>
+
+                {% endfor %}
+</tbody>
+                </table>
+
+    {% endif %}
     <br>
-
-    {% if App1_output_result %}
-        Soluzione ottima: <br>
-        {% for results in App1_output_result %}
-            <table border='1'>
-                <tr>
-                    <th style="text-align:center">Attivazione prima selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.first_sorting }}
-                    </td>
-                </tr>
-                <tr>
-                    <th style="text-align:center">Attivazione seconda selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.second_sorting }}
-                    </td>
-                </tr>
-                <tr>
-                    <th style="text-align:center">operatori prima selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.first_sort_operators }}
-                    </td>
-                </tr>
-                <tr>
-                    <th style="text-align:center">operatori seconda selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.second_sort_operators }}
-                    </td>
-                </tr>
-                <tr>
-                    <th style="text-align:center">Quantità prima selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.first_sort_amount }}
-                    </td>
-                </tr>
-                <tr>
-                    <th style="text-align:center">Quantità seconda selezione</th>
-                </tr>
-                <tr>
-                    <td align='center' valign='center'>
-                        {{ results.second_sort_amount }}
-                    </td>
-                </tr>
-            </table>
-        {% endfor %}
-    {% endif %}
-
-
-    {#{% load django_tables2 %}#}
-    {#{% render_table table %}#}
 
 {% endblock %}
