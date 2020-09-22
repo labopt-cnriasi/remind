@@ -1,4 +1,7 @@
 {% load static bootstrap4 %}
+{% load static %}
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,26 +18,49 @@
 
 <body>
 
+<!--
+<div id="billboard">
+    <div class="copy-banner" style="border:1px solid;background: #44B78B;text-align:center;padding: 1em 3em;">
+        <div class="container">
+            <h1> <b> REMIND </b> </h1>
+            <h1> <em> Reverse Manufacturing INnovation Decision system </em> </h1>
+        </div>
+    </div>
+</div>
+-->
 
 <div id="billboard">
-    <div class="copy-banner" style="background: #44B78B;text-align:center;padding: 1em 3em;">
+    <div class="copy-banner" style="border:1px solid;background: #44B78B;text-align:center;padding: 1em 3em;">
         <div class="container">
-            <h1>REMIND - Reverse Manufacturing INnovation Decision system</h1>
+            <div class="row">
+                  <div class="column">
+                    <img style="width: 150px; height: 130px;" alt="logo REMIND" src="{% static '/static/logoREMIND.png' %}" ALIGN=”left” HSPACE=”50” VSPACE=”50”>
+                  </div>
+                  <div class="column">
+                    <h1 style="text-align: center"> <b> REMIND </b> </h1>
+                    <h1 style="text-align: center"> <em> Reverse Manufacturing INnovation Decision system </em> </h1>
+                  </div>
+                  <div class="column">
+                    <img style="width: 200px; height: 95px;" alt="logo IASI" src="{% static '/static/logoIASI.png' %}" ALIGN=”right” HSPACE=”50” VSPACE=”50”>
+                  </div>
+                </div>
         </div>
     </div>
 </div>
 
 
-<div class="container-fluid" style="padding: 4em 3em;">
+
+<div class="container-fluid" style="padding: 4em 3em;" >
     <div class="row">
-        <div class="col-sm-2">
+        <div class="col-sm-2"  style="border-width:5px; border-style:ridge;">
             {% block sidebar %}
                 <ul class="sidebar-nav">
-                    <li><a href="{% url 'home' %}">Home</a></li>
-                    <li><a href="{% url 'admin:index' %}">Admin</a></li>
-                    <li><a href="{% url 'allapps:app1' %}">Waste Selection Planner</a></li>
-                    <li><a href="{% url 'allapps:app2' %}">Route Planner</a></li>
-                    <li><a href="">Profitability (on work)</a></li>
+                    <br>
+                    <li><a href="{% url 'home' %}"> <b> Home</b> </a></li>
+                    <li><a href="{% url 'admin:index' %}"> <b> Gestione dati (admin)</b></a></li>
+                    <li><a href="{% url 'allapps:app1' %}"> <b> Pianificatore Produzione </b>  </a></li>
+                    <li><a href="{% url 'allapps:app2' %}"> <b> Pianificatore Logistica </b> </a></li>
+                    <li><a href=""> <b> Analisi profittabilità <br> (in lavorazione)</b></a></li>
                 </ul>
             {% endblock %}
         </div>
@@ -44,3 +70,56 @@
 </body>
 </html>
 
+<br>
+<br>
+ <!-- Site footer -->
+    <footer class="site-footer" style="border:1px solid;background: #44B78B;text-align:left;padding: 1em 3em;">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <p class="text-justify"> <i>REMIND </i> è un progetto finanziato dal programma POR FESR LAZIO 2014-2020 - "Circular Economy e Energia"</p>
+
+            <img style="width: 525px; height: 75px;" alt="logo REMIND" src="{% static '/static/logoREGIONE.png' %}">
+            <br>
+            <br>
+            <p class="text-justify"> Per maggiori informazioni visita il <a href="http://remind.iasi.cnr.it/">sito ufficiale del progetto</a>  </p>
+
+          </div>
+
+          <div class="col-xs-6 col-md-3">
+            <h6>Sezioni del sito</h6>
+            <ul class="footer-links">
+              <li><a href="{% url 'home' %}"> Home </a></li>
+              <li><a href="{% url 'admin:index' %}"> Gestione dati (admin)</a></li>
+              <li><a href="{% url 'allapps:app1' %}"> Pianificatore Produzione </a></li>
+              <li><a href="{% url 'allapps:app2' %}">  Pianificatore Logistica  </a></li>
+              <li><a href="{% url 'allapps:app3' %}">  Analisi profittabilità <br> (in lavorazione) </a></li>
+              <li><a href="{% url 'allapps:contatti' %}"> Contatti</a></li>
+
+            </ul>
+          </div>
+
+          <div class="col-xs-6 col-md-3" >
+            <h6 style="text-align:e" >Links utili</h6>
+            <ul class="footer-links" >
+              <li><a href="http://www.iasi.cnr.it/new/">IASI</a></li>
+              <li><a href="https://www.cnr.it/">CNR</a></li>
+              <li><a href="http://www.innocenti.it/">Innocenti Srl</a></li>
+              <li><a href="http://www.lazioeuropa.it/bandi/por_fesr_bando_circular_economy_ed_energia-494/">POR FESR Lazio 2014-2020 Circular Economy ed Energia</a></li>
+              <li><a href="https://www.ellenmacarthurfoundation.org/circular-economy/what-is-the-circular-economy">Che cos'è l'economia circolare?</a></li>
+            </ul>
+          </div>
+        </div>
+        <hr>
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8 col-sm-6 col-xs-12">
+            <p class="copyright-text">Copyright &copy; 2020 All Rights Reserved by
+         <a> Istituto di analisi dei sistemi ed informatica "Antonio Ruberti" (IASI) - Consiglio Nazionale delle Ricerche</a>.
+            </p>
+          </div>
+
+        </div>
+      </div>
+</footer>

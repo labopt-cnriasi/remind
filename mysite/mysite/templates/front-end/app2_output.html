@@ -33,12 +33,12 @@ Seleziona il giorno di cui vuoi conoscere i percorsi ottimi delle missioni di tr
 
         </fieldset>
         <br>
-        <input type="submit" value="Cerca"
+        <input type="submit" value="Cerca" style="font-weight: bold;"
                name="Submit" id="frm_submit"/>
 
     </form>
 
-    <br>
+
 
     {% if App2_output_result_detail %}
         Stato di completamento : <font color="darkgreen"> {{ App2_output_result_detail.is_running }}</font><br>
@@ -88,6 +88,17 @@ Seleziona il giorno di cui vuoi conoscere i percorsi ottimi delle missioni di tr
             {%endif%}
         {% endfor %}
     {% endif %}
-    <br>
+
+
+    {% if no_result %}
+    <font color="darkred"> Per il giorno selezionato non è stata ancora richiesta la programmazione delle attività di trasporto. </font><br>
+    Clicca qui se vuoi richiederne il calcolo:
+        <br>
+        <br>
+     <form action="{% url 'allapps:app2' %}" method="get">
+
+    <button style="font-weight: bold;" type = "submit" id="myButton" class="float-left submit-button" > <font color="darkblue"> Route Planner </font> </button>
+    </form>
+    {% endif %}
 
 {% endblock %}

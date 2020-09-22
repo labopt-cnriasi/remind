@@ -2,10 +2,37 @@
 
 {% block content %}
 {% load static %}
-<form action="{% url 'allapps:app1' %}" method="get">
-    <input type="submit" value="App 1" 
-         name="Submit" id="frm1_submit" />
-</form>
-<button type="button">App 2</button>
-<button type="button">App 3</button>
+Il progetto <i> REMIND </i> intende integrare ed ottimizzare i sistemi di produzione che sottendono la circular economy ed in particolare i processi di raccolta,
+produzione inversa e distribuzione dei materiali differenziati, sia a livello strategico che operativo.
+L’obiettivo viene perseguito tramite la pianificazione efficiente delle operazioni reverse con l'impiego di sistemi di supporto alle decisoni e di monitoraggio dei flussi.
+<br>
+    <br>
+L’obiettivo è stato raggiunto raggiunto tramite la concezione, la progettazione e lo sviluppo di modelli decisionali per il supporto alla pianificazione integrata di logistica e produzione.
+<br>
+    <br>
+Questo sito permette l'utilizzo di questi applicativi selezionabili nell'indice.
+    <br>
+<li> <b> Pianificatore Produzione: </b> <i> <u> Supporto alla programmazione delle attività di selezione del rifiuto </u> </i>
+    <br>
+    L’applicativo determina quale attività di selezione avviare in ogni turno lavorativo
+    durante tutto l’orizzonte temporale considerato. Suggerisce inoltre il numero ottimo di
+    operatori da impiegare in ogni turno lavorativo e per ogni attività di selezione prevista.
+    Determina quindi la quantità di materiale da selezionare in ogni turno lavorativo e per
+    ogni attività di selezione durante tutto l’orizzone temporale considerato.
+    </li>
+<li> <b>Pianificatore Logistica: </b> <i> <u> Supporto alla programmazione delle attività di trasporto e conferimento del rifiuto </u> </i>
+    <br>
+    L’applicativo è utile  alla programmazione delle attività di recupero e consegna dei cassoni da parte degli automezzi della flotta aziendale.
+    Questo può comunque essere utilizzato per programmare ogni attività di trasporto, come ad esempio il conferimento per vendita.
+    L'applicativo attribuisce ogni cliente da servire per il giorno selezionato ad un automezzo della flotta azindale,
+    suggerendo ad ognuno di questi il percorso ordinato di produttori e smaltitori da visitare.
+    Presenta inoltre gli orari indicativi di arrivo e partenza per ogni località prevista nella rotta.
+    </li>
+<li> <b>Analisi profittabilità:  </b> <i> <u>Supporto all’analisi della profittabilità dei clienti </u> </i>
+    <br>
+    L’applicativo (in via di sviluppo) permette di analizzare la profittabilità di ogni cliente prendendo in
+    cosiderazione sia gli addebbiti relativi ad i servizi di recupero che l’imputazione della
+    quota parte del ricavato ottenuto dalla vendita delle balle di materia prima seconda.
+    </li>
+
 {% endblock %}

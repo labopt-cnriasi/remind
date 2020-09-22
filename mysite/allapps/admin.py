@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from import_export.admin import ImportExportModelAdmin
 from import_export import resources
-from allapps.models import Client, Carrier, Transporter, Truck, Cer, Mission, Fir, Mix_unloading
+from allapps.models import Client, UnitaLocale, Carrier, Transporter, Truck, Cer, Mission, Fir, Mix_unloading
 from allapps.models import Input_App1, Output_App1, Output_App1_detail, Input_App2, Output_App2, Output_App2_detail
 from .forms import *
 
@@ -213,8 +213,32 @@ class Output_App2_detailAdmin(ImportExportModelAdmin):
     list_display = ['input_reference', 'is_running']
 
 ################
-# ##############################################################
+###############################################################
+class UnitaLocaleResource(resources.ModelResource):
+    class Meta:
+        model = UnitaLocale
+
+class UnitaLocaleAdmin(ImportExportModelAdmin):
+    class Meta:
+        model = UnitaLocale
+
+    # def save_model(self, request, obj, form, change):
+    #     instance = form.save(commit=False)
+    #     instance.save(request=request)
+    #     return instance
+
+    list_display = ['id_Client', 'progressivo_sede', 'nome_sede', 'lat','long', 'timewindow_LB','timewindow_UB', 'service_time']
+    search_fields = ['id_Client', 'progressivo_sede','nome_sede']
+
+
+
+###############################################################
+
+
+
+
 admin.site.register(Client, ClientAdmin)
+admin.site.register(UnitaLocale, UnitaLocaleAdmin)
 admin.site.register(Carrier, CarrierAdmin)
 admin.site.register(Transporter, TransporterAdmin)
 admin.site.register(Truck, TruckAdmin)

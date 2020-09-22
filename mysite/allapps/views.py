@@ -41,55 +41,64 @@ class App1_outputView(TemplateView):
         #                                                       input_reference__horizon_UB=request.POST['horizon_UB'])
 
 
-
-        get_id = list(Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
-                                                 input_reference__horizon_UB=request.POST['horizon_UB']))[0].id
-
-        context['App1_output_result_detail'] = Output_App1_detail.objects.filter(id=get_id,
-                                                                                 input_reference__horizon_LB=request.POST['horizon_LB'],
-                                                                                 input_reference__horizon_UB=request.POST['horizon_UB'])
-
-        result = Output_App1.objects.filter(id=get_id,
-                                            input_reference__horizon_LB=request.POST['horizon_LB'],
-                                            input_reference__horizon_UB=request.POST['horizon_UB']).first()
+        get_id = Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
+                                                 input_reference__horizon_UB=request.POST['horizon_UB'])
 
 
+        if get_id.exists():
 
-        start_date = datetime.strptime(request.POST['horizon_LB'], "%Y-%m-%d")
-        end_date = datetime.strptime(request.POST['horizon_UB'], "%Y-%m-%d")
+            get_id = list(Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
+                                                     input_reference__horizon_UB=request.POST['horizon_UB']))[0].id
 
-        deltadays = (end_date - start_date).days + 1
-        working_shifts = ["mattina  ","pomeriggio"]
-        days_list = []
-        shifts_list = []
-        for i in range(deltadays + 1):
-            for shift in working_shifts:
-                shifts_list.append(shift)
-                days_list.append((start_date + timedelta(days=i)).strftime("%d/%m/%Y"))  #prova "%d %B, %Y"
+            context['App1_output_result_detail'] = Output_App1_detail.objects.filter(id=get_id,
+                                                                                     input_reference__horizon_LB=request.POST['horizon_LB'],
+                                                                                     input_reference__horizon_UB=request.POST['horizon_UB'])
 
-        solution = {}
+            result = Output_App1.objects.filter(id=get_id,
+                                                input_reference__horizon_LB=request.POST['horizon_LB'],
+                                                input_reference__horizon_UB=request.POST['horizon_UB']).first()
 
-        solution["data_turno"] = days_list
-        solution["first_sorting"] = eval(result.first_sorting)   #eval "evaluate" the string parsed as a Python expression. in this case turns the sting into a list
-        solution["second_sorting"] = eval(result.second_sorting)
-        solution["first_sort_operators"] = eval(result.first_sort_operators)
-        solution["second_sort_operators"] = eval(result.second_sort_operators)
-        solution["first_sort_amount"] = eval(result.first_sort_amount)
-        solution["second_sort_amount"] = eval(result.second_sort_amount)
 
-        solution["table_data"] = []
-        for i in range(0, len(solution["first_sorting"])):
-            # table data e' una lista di liste. ogni "linea" viene visualizzata dentro una row html
-            solution["table_data"].append([days_list[i],
-                                           shifts_list[i],
-                                           solution["first_sorting"][i],
-                                           solution["second_sorting"][i],
-                                           solution["first_sort_operators"][i],
-                                           solution["second_sort_operators"][i],
-                                           solution["first_sort_amount"][i],
-                                           solution["second_sort_amount"][i]])
 
-        context["App1_output_result"] = solution
+            start_date = datetime.strptime(request.POST['horizon_LB'], "%Y-%m-%d")
+            end_date = datetime.strptime(request.POST['horizon_UB'], "%Y-%m-%d")
+
+            deltadays = (end_date - start_date).days + 1
+            working_shifts = ["mattina  ","pomeriggio"]
+            days_list = []
+            shifts_list = []
+            for i in range(deltadays + 1):
+                for shift in working_shifts:
+                    shifts_list.append(shift)
+                    days_list.append((start_date + timedelta(days=i)).strftime("%d/%m/%Y"))  #prova "%d %B, %Y"
+
+            solution = {}
+
+            solution["data_turno"] = days_list
+            solution["first_sorting"] = eval(result.first_sorting)   #eval "evaluate" the string parsed as a Python expression. in this case turns the sting into a list
+            solution["second_sorting"] = eval(result.second_sorting)
+            solution["first_sort_operators"] = eval(result.first_sort_operators)
+            solution["second_sort_operators"] = eval(result.second_sort_operators)
+            solution["first_sort_amount"] = eval(result.first_sort_amount)
+            solution["second_sort_amount"] = eval(result.second_sort_amount)
+
+            solution["table_data"] = []
+            for i in range(0, len(solution["first_sorting"])):
+                # table data e' una lista di liste. ogni "linea" viene visualizzata dentro una row html
+                solution["table_data"].append([days_list[i],
+                                               shifts_list[i],
+                                               solution["first_sorting"][i],
+                                               solution["second_sorting"][i],
+                                               solution["first_sort_operators"][i],
+                                               solution["second_sort_operators"][i],
+                                               solution["first_sort_amount"][i],
+                                               solution["second_sort_amount"][i]])
+
+            context["App1_output_result"] = solution
+
+        else:
+            context['no_result'] = "Per il periodo selezionato non è stata ancora richiesta la programmazione delle attività"
+            return self.render_to_response(context)
 
         return self.render_to_response(context)
 
@@ -230,12 +239,10 @@ class App2View(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
         print(request.POST)
-        context['missioni_prev'] = Mission.objects.filter(date=request.POST['date'])
-
-        # save to context last input "is_running" info for html print
-        context['model_running'] = Output_App2_detail.objects.filter(input_reference__date=request.POST['date']).first
 
         input_post = request.POST
+
+        solver = input_post['solver']
 
         input_app2 = Input_App2()
         input_app2.date = datetime.strptime(input_post['date'], "%Y-%m-%d")
@@ -246,7 +253,14 @@ class App2View(TemplateView):
         missioni_previste = Mission.objects.filter(date=request.POST['date'])
 
         if missioni_previste.exists():
-            # query_df = pd.DataFrame(list(missioni_previste.values('Client_origin', 'Client_destination', 'case_number')))
+
+            output_app2_detail = Output_App2_detail(input_reference=input_app2)
+            output_app2_detail.save()
+
+            # save to context last input "is_running" info for html print
+            context['model_running'] = Output_App2_detail.objects.filter(input_reference__date=request.POST['date']).first
+
+            context['missioni_prev'] = Mission.objects.filter(date=request.POST['date'])
             query_list = list(missioni_previste)
 
             ID = 0
@@ -306,32 +320,28 @@ class App2View(TemplateView):
             trucks_plates = pd.DataFrame(trucks_plates, columns=['head', "trailer"])
             trucks_plates = trucks_plates.astype({'head': str, 'trailer': str})
 
-            solver = "GRB"  # GRB o CBC
             gap = 1e-4
             time_limit = 100
-
-            output_app2_detail = Output_App2_detail(input_reference=input_app2)
-            output_app2_detail.save()
 
             ### TO DO LIST
             # 1) Come permettere la scelta fra più solutori: una tabella che contiene quelli disponibili ? ==> selezione a tendina tra gli acquistati
             # 2) Come aggiungere come output dell'euristica le informazioni temporarli di visita dei nodi: arrivo e ripartenza
-            # 3) Creare tabella anagrafica unità locali clienti con dati di lat e long + numerazione unità locale
-            # 4) Usare  django-tables2 per il rendere delle tabelle di output della prima e seconda app ( link:  https://django-tables2.readthedocs.io/en/latest/pages/tutorial.html)
-            # usare alternativamente result[2].to_html('df_result_table_'+str(count)+'.html')
 
-            ## VRP_model
-            status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance, duration, demand, time_info,
-                                                                               trucks_info, solver, gap, time_limit)
-            VRP_results = VRP_interpreter(instance, trucks_plates, x_opt, t_opt, l_opt, distance, duration)
+            if solver == 'GRB' or solver == 'CBC':
+                ## VRP_model
+                status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance, duration, demand, time_info,
+                                                                                   trucks_info, solver, gap, time_limit)
+                VRP_results = VRP_interpreter(instance, trucks_plates, x_opt, t_opt, l_opt, distance, duration)
 
-            ## VRP_heuristic
-            data_instance = load_instance(distance, duration, demand, time_info, trucks_info)
-            tours = heur01(data_instance)
-            HEUR_results = heuristic_result_interpreter(instance, trucks_plates, tours, distance, duration)
+            if solver == 'euristica':
+                ## VRP_heuristic
+                data_instance = load_instance(distance, duration, demand, time_info, trucks_info)
+                tours = heur01(data_instance)
+                VRP_results = heuristic_result_interpreter(instance, trucks_plates, tours, distance, duration)
 
             output_app2_detail.is_running = "completato"
             output_app2_detail.save()
+            context['model_running'] = Output_App2_detail.objects.filter(input_reference__date=request.POST['date']).first
 
             count = 0
             for result in VRP_results:
@@ -380,7 +390,7 @@ class App2View(TemplateView):
                     count += 1
 
         else:
-            context['missioni_prev'] = "non sono previste missioni per la data selezionata"
+            context['no_result'] = "non sono previste missioni per la data selezionata"
             return self.render_to_response(context)
 
         return self.render_to_response(context)
@@ -402,44 +412,89 @@ class App2_outputView(TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
 
-        # select input_reference id for selected date: selected id correspond to last input_reference id
-        id = list(Output_App2.objects.filter(input_reference__date=request.POST['date']))[0].input_reference_id
-        result = Output_App2.objects.filter(input_reference__date=request.POST['date'], input_reference__id=id)
-        data = []
-        for r in result:
-            truck = {}
-            if r.truck_is_used == True:
+        get_id = Output_App2.objects.filter(input_reference__date=request.POST['date'])
+        if get_id.exists():
+            # select input_reference id for selected date: selected id correspond to last input_reference id
+            id = list(Output_App2.objects.filter(input_reference__date=request.POST['date']))[0].input_reference_id
+            result = Output_App2.objects.filter(input_reference__date=request.POST['date'], input_reference__id=id)
+            data = []
+            for r in result:
+                truck = {}
+                if r.truck_is_used == True:
 
-                truck["truck_is_used"] = True
-                truck["visit_order"] = eval(r.visit_order)
-                truck["node_name"] = eval(r.node_name)
-                truck["lat"] = eval(r.lat)
-                truck["long"] = eval(r.long)
-                truck["load_unload"] = eval(r.load_unload)
-                truck["arrival_time"] = eval(r.arrival_time)
-                truck["departure_time"] = eval(r.departure_time)
-                truck["leaving_load"] = eval(r.leaving_load)
+                    truck["truck_is_used"] = True
+                    truck["visit_order"] = eval(r.visit_order)
+                    truck["node_name"] = eval(r.node_name)
+                    truck["lat"] = eval(r.lat)
+                    truck["long"] = eval(r.long)
+                    truck["load_unload"] = eval(r.load_unload)
+                    truck["arrival_time"] = eval(r.arrival_time)
+                    truck["departure_time"] = eval(r.departure_time)
+                    truck["leaving_load"] = eval(r.leaving_load)
 
-                truck["table_data"] = []
-                for i in range(0, len(truck["visit_order"])):
-                    # table data e' una lista di liste. ogni "linea" viene visualizzata dentro una row html
-                    truck["table_data"].append([truck["visit_order"][i],
-                                                truck["node_name"][i],
-                                                truck["lat"][i],
-                                                truck["long"][i],
-                                                truck["load_unload"][i],
-                                                truck["arrival_time"][i],
-                                                truck["departure_time"][i],
-                                                truck["leaving_load"][i]])
-                truck["truck"] = r.truck
+                    truck["table_data"] = []
+                    for i in range(0, len(truck["visit_order"])):
+                        # table data e' una lista di liste. ogni "linea" viene visualizzata dentro una row html
+                        truck["table_data"].append([truck["visit_order"][i],
+                                                    truck["node_name"][i],
+                                                    truck["lat"][i],
+                                                    truck["long"][i],
+                                                    truck["load_unload"][i],
+                                                    truck["arrival_time"][i],
+                                                    truck["departure_time"][i],
+                                                    truck["leaving_load"][i]])
+                    truck["truck"] = r.truck
 
-            else:
-                truck["truck_is_used"] = False
-                truck["truck"] = r.truck
-            data.append(truck)
+                else:
+                    truck["truck_is_used"] = False
+                    truck["truck"] = r.truck
+                data.append(truck)
 
-        context["App2_output_result"] = data
-        context['App2_output_result_detail'] = Output_App2_detail.objects.filter(
-            input_reference__date=request.POST['date']).first
+            context["App2_output_result"] = data
+            context['App2_output_result_detail'] = Output_App2_detail.objects.filter(input_reference__date=request.POST['date']).first
+
+        else:
+            context['no_result'] = "Per il giorno selezionato non è stata ancora richiesta la programmazione delle attività di trasporto"
+
+
+        return self.render_to_response(context)
+
+
+class App3View(TemplateView):
+    template_name = "front-end/app3.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['missioni'] = Mission.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        print(request.POST)
+        context['scarichi_prev'] = Mix_unloading.objects.all()
+
+        return self.render_to_response(context)
+
+
+class contattiView(TemplateView):
+    template_name = "front-end/contatti.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['missioni'] = Mission.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        print(request.POST)
+        context['scarichi_prev'] = Mix_unloading.objects.all()
 
         return self.render_to_response(context)

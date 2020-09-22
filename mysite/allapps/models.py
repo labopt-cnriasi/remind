@@ -45,7 +45,34 @@ class Client(models.Model):
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clienti'
 
-    
+
+class UnitaLocale(models.Model):
+    id_Client = models.ForeignKey(Client,on_delete=models.PROTECT,verbose_name="id cliente")
+    progressivo_sede = models.PositiveIntegerField("Progressivo sede")
+
+    nome_sede = models.CharField("nome sede", max_length=200, primary_key=True)
+    lat = models.DecimalField("latitudine", max_digits=15, decimal_places=10)
+    long = models.DecimalField("longitudine", max_digits=15, decimal_places=10)
+    timewindow_LB = models.TimeField("Apertura", default=datetime.time(9, 00))
+    timewindow_UB = models.TimeField("Chiusura", default=datetime.time(17, 00))
+    service_time = models.IntegerField("Tempo di servizio stimato [mm]", validators=[MinValueValidator(0)], default=30)
+
+    """
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            try:
+                highest_number = UnitaLocale.objects.filter(id_Client=self.id_Client).order_by('-progressivo_sede').all()[0].progressivo_sede
+                self.progressivo_sede = highest_number + 1
+            except ObjectDoesNotExist:
+                self.progressivo_sede = 1
+
+        super(UnitaLocale, self).save(*args, **kwargs)
+    """
+
+    class Meta:
+        verbose_name = 'Unità locale'
+        verbose_name_plural = 'Unità locali'
+
 class Carrier(models.Model):
     id_Carrier = models.CharField("ID Trasportatore",max_length=50,primary_key=True) #Innocenti / altri
     address = models.CharField("indirizzo",max_length=50)

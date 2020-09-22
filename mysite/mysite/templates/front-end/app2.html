@@ -7,28 +7,32 @@
 {% bootstrap_javascript %}
 
 
-[ ricorda di aggiornare gli automezzi disponibili e di attivare il server delle mappe]
-<br>
-Seleziona il giorno per cui vuoi generare i percorsi ottimi delle missioni di recupero casse
-<br>
-per test seleziona la data del 30 agosto 2020
-<br>
-<br>
 
-<form action="{% url 'allapps:app2_result' %}" method="get">
+Benvenuto nel modulo di programmazione delle attività di trasporto
+<br>
+Per un utilizzo corretto dell'applicazione assicurati di aver eseguito le seguenti operazioni:
+<br>
+    <br>
+<ul>
+<li>Aggiornare gli automezzi disponibili nella sezione admin</li>
+<li>Inserire tutte le missioni previste per il giorno considerato</li>
+<li>Attivare il server delle mappe openstreetmap </li>
+</ul>
 
-<button type = "submit" id="myButton" class="float-right submit-button" >Route Planner Results</button>
-</form>
 
+
+Seleziona ora il giorno per cui vuoi generare i percorsi ottimi delle missioni di recupero casse
+<br>
+<br>
 
 <form action="{% url 'allapps:app2' %}" method="post">
     {% csrf_token %}
-    <fieldset class="module aligned ">
+    <fieldset class="module aligned " >
 
             <div class="form-row field-date">
                     <div>
                             <label class="required" for="id_date">Data:</label>
-                                <input type="date" name="date" class="vDateField" size="10" required="" id="id_date"><span class="datetimeshortcuts">
+                                <input type="date" name="date" value = "2020-08-30" class="vDateField" size="10" required="" id="id_date"><span class="datetimeshortcuts">
                     </div>
             </div>
 
@@ -45,20 +49,43 @@ per test seleziona la data del 30 agosto 2020
                                 <input type="number" name="distance_cost" value="15" class="vIntegerField" min="0" required="" id="id_distance_cost">
                     </div>
             </div>
+            <br>
+            Seleziona il solutore da utilizzare per la soluzione del problema:
+            <br>
+            <br>
+            <input type="radio" id="gurobi" name="solver" value="GRB">
+            <label for="male">Gurobi®</label><br>
+            <input type="radio" id="mip" name="solver" value="CBC">
+            <label for="female">Python-MIP</label><br>
+            <input type="radio" id="euristica" name="solver" value="euristica">
+            <label for="other">Euristica-IASI</label>
+            <br>
 
     </fieldset>
     <br>
-    <input type="submit" value="Genera percorsi"
-     name="Submit" id="frm1_submit" />
+    <input type="submit" value="Genera percorsi" style="font-weight: bold;"
+     name="Submit" id="frm1_submit"  />
+
+
+
 
 </form>
+
+
+
+<div id="display_state">
+
+    Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br
+
+</div>
+
 
 {% if model_running %}
     Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br>
     <br>
-    Per conoscere i dettagli delle programmazione logistica:
+    Per conoscere i dettagli delle programmazione logistica clicca qui:
     <form action="{% url 'allapps:app2_result' %}" method="get">
-    <button type = "submit" id="myButton" class="float-left submit-button" >instradamento ottimale</button>
+    <button type = "submit" id="myButton" style="font-weight: bold;" class="float-left submit-button" > <font color="darkblue"> Instradamento ottimale </font> </button>
     </form>
     <br>
 {%endif%}
@@ -76,6 +103,21 @@ per test seleziona la data del 30 agosto 2020
         {%endif%}
     {%endfor%}
 {%endif%}
+
+{% if no_result %}
+<font color="darkred"> Non sono previste missioni per la data selezionata. </font>
+
+    <br>
+    <br>
+{%endif%}
+
+<br>
+<br>
+Se vuoi visualizzare le rotte ottime calcolate, visita la pagina dei risultati:
+<form action="{% url 'allapps:app2_result' %}" method="get">
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Risultati applicazione </font> </button>
+</form>
+
 
 
 
