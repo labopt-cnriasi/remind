@@ -253,34 +253,6 @@ def sorting_model(input_app,arrivals):
         gap = m.MIPGap
         status = "optimal"
         #m.write('WFA_Diego.lp')
-    elif status == 3:  # INFEASIBLE
-        m.computeIIS()
-        name_ilp = "WFA_test_IIS_" + str(TH) + '_' +  '_' + cost_labels[3] + " storage costs.ilp"
-        #m.write(name_ilp)
-        optObjVal = "Infeasible"
-        bestObjBound = "Infeasible"
-        Runtime = "Infeasible"
-        IterCount = "Infeasible"
-        NodeCount = "Infeasible"
-        NumQConstrs = "Infeasible"
-        NumVars = "Infeasible"
-        NumBinVar = "Infeasible"
-        NumIntVar = "Infeasible"
-        gap = "Infeasible"
-        status = "Infeasible"
-        return "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible", "Infeasible"
-    elif status == 9:  # TIME-LIMIT
-        optObjVal = m.getAttr(GRB.Attr.ObjVal)
-        bestObjBound = m.getAttr(GRB.Attr.ObjBound)
-        IterCount = m.getAttr(GRB.Attr.IterCount)
-        NodeCount = m.getAttr(GRB.Attr.NodeCount)
-        NumConstrs = m.getAttr(GRB.Attr.NumConstrs)
-        NumVars = m.getAttr(GRB.Attr.NumVars)
-        NumBinVar = m.getAttr(GRB.Attr.NumBinVars)
-        NumIntVar = m.getAttr(GRB.Attr.NumIntVars)
-        gap = m.MIPGap
-        status = "Time limit reached"
-        #m.write('WFA_Diego.lp')
     else:
         altern_status = status
         print("Optimization stopped with status = {}".format(altern_status))
@@ -369,7 +341,12 @@ def sorting_model(input_app,arrivals):
         #opt_values.to_excel("Output WFA" + "_J = " + str(J) + "_TH = " + str(TH) + '_' +  '_' + cost_labels[3] + ".xlsx")
 
     else:
-        return "Infeasible", "Infeasible", "Infeasible"
+        y_opt = []
+        x_opt = []
+        u_opt = []
+        status = "infeasible"
+        return status, y_opt, x_opt, u_opt
+
 
     #################################################
     m.update()
@@ -383,7 +360,7 @@ def sorting_model(input_app,arrivals):
     u_opt.iloc[:, 0] = [int(i) for i in u_opt.iloc[:, 0]]
     u_opt.iloc[:, 1] = [int(i) for i in u_opt.iloc[:, 1]]
 
-    return y_opt, x_opt, u_opt
+    return status, y_opt, x_opt, u_opt
 
 
 

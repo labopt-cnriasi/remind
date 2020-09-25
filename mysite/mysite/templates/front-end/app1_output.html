@@ -18,7 +18,7 @@ Seleziona il periodo di cui vuoi conoscere la programmazione ottimale delle atti
             <div class="form-row field-horizon_LB">
                 <div>
                     <label class="required" for="id_horizon_LB">&emsp;Inizio programmazione:</label>
-                    <input type="date" name="horizon_LB" class="vDateField" size="10" required=""
+                    <input type="date" value = "2020-09-21"  name="horizon_LB" class="vDateField" size="10" required=""
                            id="id_horizon_LB"><span class="datetimeshortcuts">
                 </div>
             </div>
@@ -26,14 +26,14 @@ Seleziona il periodo di cui vuoi conoscere la programmazione ottimale delle atti
             <div class="form-row field-horizon_UB">
                 <div>
                     <label class="required" for="id_horizon_UB">&emsp;Fine programmazione  :</label>
-                    <input type="date" name="horizon_UB" class="vDateField" size="10" required=""
+                    <input type="date" value = "2020-09-26" name="horizon_UB" class="vDateField" size="10" required=""
                            id="id_horizon_UB"><span class="datetimeshortcuts">
                 </div>
             </div>
 
         </fieldset>
         <br>
-        <input type="submit" value="Cerca"
+        <input style="font-weight: bold;" type="submit" value="Cerca"
                name="Submit" id="frm_submit"/>
 
     </form>
@@ -79,14 +79,14 @@ Seleziona il periodo di cui vuoi conoscere la programmazione ottimale delle atti
 
 
     {% if no_result %}
-    Per il periodo selezionato non è stata ancora richiesta la programmazione delle attività di selezione.
+    <font color="darkred"> Per il periodo selezionato non è stata ancora richiesta la programmazione delle attività di selezione. </font>
         <br>
     Clicca qui se vuoi richiederne il calcolo:
         <br>
         <br>
      <form action="{% url 'allapps:app1' %}" method="get">
 
-         <button type = "submit" id="myButton" class="float-left submit-button" > <font color="darkblue"> Schedulatore delle attività di selezione </font> </button>
+         <button style="font-weight: bold;" type = "submit" id="myButton" class="float-left submit-button" > <font color="darkblue"> Schedulatore delle attività di selezione </font> </button>
     </form>
     {% endif %}
 

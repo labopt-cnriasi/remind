@@ -6,16 +6,6 @@
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
-<!--{% for missione in missioni %}-->
-<!--    {{missione.Client_origin}} in data {{missione.date}} <br>-->
-<!--{% endfor %}-->
-
-
-<form action="{% url 'allapps:app1_result' %}" method="get">
-
-<button type = "submit" id="myButton" class="float-right submit-button" >Scheduling Results</button>
-</form>
-
 
 <form action="{% url 'allapps:app1' %}" method="post">
     {% csrf_token %}
@@ -24,24 +14,24 @@
             <div class="form-row field-horizon_LB">
                     <div>
                             <label class="required" for="id_horizon_LB">Inizio programmazione:</label>
-                                <input type="date" name="horizon_LB" class="vDateField" size="10" required="" id="id_horizon_LB"><span class="datetimeshortcuts">
+                                <input type="date" value = "2020-09-21" name="horizon_LB" class="vDateField" size="10" required="" id="id_horizon_LB"><span class="datetimeshortcuts">
                     </div>
             </div>
         
             <div class="form-row field-horizon_UB">
                     <div>
                             <label class="required" for="id_horizon_UB">Fine programmazione:</label>
-                                <input type="date" name="horizon_UB" class="vDateField" size="10" required="" id="id_horizon_UB"><span class="datetimeshortcuts">
+                                <input type="date" value = "2020-09-26" name="horizon_UB" class="vDateField" size="10" required="" id="id_horizon_UB"><span class="datetimeshortcuts">
                     </div>
             </div>
-        
+<!--
             <div class="form-row field-dailyshifts">
                     <div>
                             <label class="required" for="id_dailyshifts">Turni giornalieri:</label>
                                 <input type="number" name="dailyshifts" value="2" class="vIntegerField" min="0" required="" id="id_dailyshifts">
                     </div>
             </div>
-        
+-->
             <div class="form-row field-shift_1_hours">
                     <div>
                             <label class="required" for="id_shift_1_hours">Ore 1°turno:</label>
@@ -55,14 +45,14 @@
                                 <input type="number" name="shift_2_hours" value="3" class="vIntegerField" min="0" required="" id="id_shift_2_hours">
                     </div>
             </div>
-        
+<!--
             <div class="form-row field-shift_3_hours">
                     <div>
                             <label class="required" for="id_shift_3_hours">Ore 3°turno:</label>
                                 <input type="number" name="shift_3_hours" value="0" class="vIntegerField" min="0" required="" id="id_shift_3_hours">
                     </div>
             </div>
-        
+ -->
             <div class="form-row field-operator_wage">
                     <div>
                             <label class="required" for="id_operator_wage">Costo operatore [€/h]:</label>
@@ -157,16 +147,47 @@
             </div>
         
     </fieldset>
-    <input style="font-weight: bold" type="submit" value="Genera programmazione ottimale"
+    <input style="font-weight: bold"  id="btnGenera" type="submit" value="Genera programmazione ottimale"
      name="Submit" id="frm1_submit" />
 
 </form>
 
+<div id="lblWait"></div>
+
 {% if scarichi_prev %}
-    scarichi previsti: <br>
-    {% for scarico in scarichi_prev %}
-    {{scarico.id_Client}}<br>
-    {%endfor%}
+    <div id="completato"> Stato del problema: <font color="darkgreen"> Completato </font><br></div>
+    {% if optimal %}
+    <font color="darkgreen"> Per conoscere i dettagli della soluzione trovata clicca sul pulsante <i> <b> risultati applicazione </b> </i> </font>
+    {%endif%}
+    <br>
 {%endif%}
+
+
+    <script>
+    $("#btnGenera").click(function() {
+        $("#completato").hide();
+        $("#lblWait").html('Stato del problema: <font color="darkgreen">  In esecuzione </font>');
+    })
+    </script>
+
+{% if no_result %}
+<font color="darkred"> non sono previsti conferimenti per il periodo selezionato </font>
+
+    <br>
+    <br>
+{%endif%}
+
+{% if infeasible %}
+<font color="darkred"> Il problema non ammette solouzione ammissibile </font>
+
+    <br>
+    <br>
+{%endif%}
+
+<br>
+Se vuoi visualizzare la programmazione ottima calcolata, visita la pagina dei risultati:
+<form action="{% url 'allapps:app1_result' %}" method="get">
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Risultati applicazione </font> </button>
+</form>
 
 {% endblock %}

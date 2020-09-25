@@ -48,7 +48,8 @@ class App1_outputView(TemplateView):
         if get_id.exists():
 
             get_id = list(Output_App1.objects.filter(input_reference__horizon_LB=request.POST['horizon_LB'],
-                                                     input_reference__horizon_UB=request.POST['horizon_UB']))[0].id
+                                                     input_reference__horizon_UB=request.POST['horizon_UB']))[-1].id
+
 
             context['App1_output_result_detail'] = Output_App1_detail.objects.filter(id=get_id,
                                                                                      input_reference__horizon_LB=request.POST['horizon_LB'],
@@ -126,10 +127,10 @@ class App1View(TemplateView):
         input_app1 = Input_App1()
         input_app1.horizon_LB = datetime.strptime(input_post['horizon_LB'], "%Y-%m-%d")
         input_app1.horizon_UB = datetime.strptime(input_post['horizon_UB'], "%Y-%m-%d")
-        input_app1.dailyshifts = int(input_post['dailyshifts'])
+        input_app1.dailyshifts = 2
         input_app1.shift_1_hours = int(input_post['shift_1_hours'])
         input_app1.shift_2_hours = int(input_post['shift_2_hours'])
-        input_app1.shift_3_hours = int(input_post['shift_3_hours'])
+        input_app1.shift_3_hours = 0
         input_app1.operator_wage = int(input_post['operator_wage'])
         input_app1.max_operators = int(input_post['max_operators'])
         input_app1.min_op_sort1 = int(input_post['min_op_sort1'])
@@ -148,78 +149,89 @@ class App1View(TemplateView):
         scarichi_previsti = Mix_unloading.objects.filter(date__gte=request.POST['horizon_LB'],
                                                          date__lte=request.POST['horizon_UB'])
 
-        scarichi_previsti_shift_1 = scarichi_previsti.filter(working_shift=1)
-        scarichi_previsti_shift_2 = scarichi_previsti.filter(working_shift=2)
+        if scarichi_previsti.exists():
 
-        scarichi_previsti_shift_1 = scarichi_previsti_shift_1.order_by('date')
-        scarichi_previsti_shift_2 = scarichi_previsti_shift_2.order_by('date')
+            scarichi_previsti_shift_1 = scarichi_previsti.filter(working_shift=1)
+            scarichi_previsti_shift_2 = scarichi_previsti.filter(working_shift=2)
 
-        start_date = input_post['horizon_LB']
-        end_date = input_post['horizon_UB']
+            scarichi_previsti_shift_1 = scarichi_previsti_shift_1.order_by('date')
+            scarichi_previsti_shift_2 = scarichi_previsti_shift_2.order_by('date')
 
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            start_date = input_post['horizon_LB']
+            end_date = input_post['horizon_UB']
 
-        deltadays = (end_date - start_date).days + 1
-        P = 2
-        TH = deltadays * P
-        days_list = []
-        for i in range(deltadays + 1):
-            days_list.append(start_date + timedelta(days=i))
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
 
-        Arrivals = [[], []]
+            deltadays = (end_date - start_date).days + 1
+            P = 2
+            TH = deltadays * P
+            days_list = []
+            for i in range(deltadays + 1):
+                days_list.append(start_date + timedelta(days=i))
 
-        for day in days_list:
-            sum_shift_1 = 0
-            query_1 = Mix_unloading.objects.filter(date=day, working_shift=1)
-            if query_1.exists():
-                sum_shift_1 = query_1.aggregate(Sum('quantity'))['quantity__sum']
+            Arrivals = [[], []]
 
-            sum_shift_2 = 0
-            query_2 = Mix_unloading.objects.filter(date=day, working_shift=2)
-            if query_2.exists():
-                sum_shift_2 = query_2.aggregate(Sum('quantity'))['quantity__sum']
+            for day in days_list:
+                sum_shift_1 = 0
+                query_1 = Mix_unloading.objects.filter(date=day, working_shift=1)
+                if query_1.exists():
+                    sum_shift_1 = query_1.aggregate(Sum('quantity'))['quantity__sum']
 
-            Arrivals[0].append(sum_shift_1)
-            Arrivals[1].append(sum_shift_2)
+                sum_shift_2 = 0
+                query_2 = Mix_unloading.objects.filter(date=day, working_shift=2)
+                if query_2.exists():
+                    sum_shift_2 = query_2.aggregate(Sum('quantity'))['quantity__sum']
 
-        output_app1_detail = Output_App1_detail(input_reference=input_app1)
-        output_app1_detail.save()
+                Arrivals[0].append(sum_shift_1)
+                Arrivals[1].append(sum_shift_2)
 
-        y_opt, x_opt, u_opt = sorting_model(input_app1, Arrivals)
+            output_app1_detail = Output_App1_detail(input_reference=input_app1)
+            output_app1_detail.save()
 
-        output_app1_detail.is_running = "completato"
-        output_app1_detail.save()
+            status, y_opt, x_opt, u_opt = sorting_model(input_app1, Arrivals)
 
-        output_app1 = Output_App1(input_reference=input_app1)
+            output_app1_detail.is_running = "completato"
+            output_app1_detail.save()
 
-        first_sorting_new = []
-        second_sorting_new = []
-        first_sorting = y_opt.iloc[:, 0].to_list()
-        second_sorting = y_opt.iloc[:, 1].to_list()
-        for i in range(len(first_sorting)):
-            if first_sorting[i] == 1:
-                first_sorting_new.append("attivata")
-            else:
-                first_sorting_new.append(" - ")
-            if second_sorting[i] == 1:
-                second_sorting_new.append("attivata")
-            else:
-                second_sorting_new.append(" - ")
+            if status == "infeasible":
+                context["infeasible"] = "Il problema non ammette solouzione ammissibile"
 
-        output_app1.first_sorting = first_sorting_new
-        output_app1.second_sorting = second_sorting_new
+            if status == "optimal":
 
-        # output_app1.first_sorting = y_opt.iloc[:, 0].to_list()
-        # output_app1.second_sorting = y_opt.iloc[:, 1].to_list()
+                context["optimal"] = "Il problema non ammette solouzione ottima"
+                output_app1 = Output_App1(input_reference=input_app1)
 
-        output_app1.first_sort_operators = x_opt.iloc[:, 0].to_list()
-        output_app1.second_sort_operators = x_opt.iloc[:, 1].to_list()
+                first_sorting_new = []
+                second_sorting_new = []
+                first_sorting = y_opt.iloc[:, 0].to_list()
+                second_sorting = y_opt.iloc[:, 1].to_list()
+                for i in range(len(first_sorting)):
+                    if first_sorting[i] == 1:
+                        first_sorting_new.append("attivata")
+                    else:
+                        first_sorting_new.append(" - ")
+                    if second_sorting[i] == 1:
+                        second_sorting_new.append("attivata")
+                    else:
+                        second_sorting_new.append(" - ")
 
-        output_app1.first_sort_amount = u_opt.iloc[:, 0].to_list()
-        output_app1.second_sort_amount = u_opt.iloc[:, 1].to_list()
+                output_app1.first_sorting = first_sorting_new
+                output_app1.second_sorting = second_sorting_new
 
-        output_app1.save()
+                # output_app1.first_sorting = y_opt.iloc[:, 0].to_list()
+                # output_app1.second_sorting = y_opt.iloc[:, 1].to_list()
+
+                output_app1.first_sort_operators = x_opt.iloc[:, 0].to_list()
+                output_app1.second_sort_operators = x_opt.iloc[:, 1].to_list()
+
+                output_app1.first_sort_amount = u_opt.iloc[:, 0].to_list()
+                output_app1.second_sort_amount = u_opt.iloc[:, 1].to_list()
+
+                output_app1.save()
+
+        else:
+            context['no_result'] = "non sono previsti conferimenti per il periodo selezionato"
 
         return self.render_to_response(context)
 
@@ -415,7 +427,7 @@ class App2_outputView(TemplateView):
         get_id = Output_App2.objects.filter(input_reference__date=request.POST['date'])
         if get_id.exists():
             # select input_reference id for selected date: selected id correspond to last input_reference id
-            id = list(Output_App2.objects.filter(input_reference__date=request.POST['date']))[0].input_reference_id
+            id = list(Output_App2.objects.filter(input_reference__date=request.POST['date']))[-1].input_reference_id
             result = Output_App2.objects.filter(input_reference__date=request.POST['date'], input_reference__id=id)
             data = []
             for r in result:

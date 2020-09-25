@@ -53,7 +53,7 @@ Seleziona ora il giorno per cui vuoi generare i percorsi ottimi delle missioni d
             Seleziona il solutore da utilizzare per la soluzione del problema:
             <br>
             <br>
-            <input type="radio" id="gurobi" name="solver" value="GRB">
+            <input type="radio" id="gurobi" name="solver" value="GRB" checked>
             <label for="male">Gurobi®</label><br>
             <input type="radio" id="mip" name="solver" value="CBC">
             <label for="female">Python-MIP</label><br>
@@ -63,25 +63,19 @@ Seleziona ora il giorno per cui vuoi generare i percorsi ottimi delle missioni d
 
     </fieldset>
     <br>
-    <input type="submit" value="Genera percorsi" style="font-weight: bold;"
+    <input type="submit"  id="btnGenera" value="Genera percorsi" style="font-weight: bold;"
      name="Submit" id="frm1_submit"  />
 
-
+    <div id="lblWait"></div>
 
 
 </form>
 
 
 
-<div id="display_state">
-
-    Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br
-
-</div>
-
 
 {% if model_running %}
-    Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br>
+    <div id="completato"> Stato del problema: <font color="darkgreen"> {{ model_running.is_running }}</font><br></div>
     <br>
     Per conoscere i dettagli delle programmazione logistica clicca qui:
     <form action="{% url 'allapps:app2_result' %}" method="get">
@@ -120,5 +114,14 @@ Se vuoi visualizzare le rotte ottime calcolate, visita la pagina dei risultati:
 
 
 
+    <script>
+    $("#btnGenera").click(function() {
+        $("#completato").hide();
+        $("#lblWait").html('Stato del problema: <font color="darkgreen">  In esecuzione </font>');
+    })
+
+
+
+    </script>
 
 {% endblock %}
