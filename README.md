@@ -13,4 +13,6 @@ install module import_export
 or $ conda install django-import-export  
 install module bootstrap  
    $ conda install django-bootstrap4  
-
+install OSRM server (Open Source Routing Machine)
+instal folium
+   $ pip install folium
