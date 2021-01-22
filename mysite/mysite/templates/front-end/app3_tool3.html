@@ -1,0 +1,40 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+
+
+
+<p> Questo stumento permette di visualizzare una mappa dei clienti serviti nel periodo selezionato. </p>
+<p> I colori degli indicatori della mappa indicano l'appartenenza ad una delle seguenti classi: </p>
+    <ul>
+        <li> <font color="#8b0000"> Rosso </font> -  cliente non profittevole</li>
+        <li> <font color="#1e90ff"> Celeste </font> - profitto moderato</li>
+        <li> <font color="#0000cd"> Blu </font> - profitto elevato </li>
+    </ul>
+<form action="{% url 'allapps:app3tool3' %}" method="POST">
+    {% csrf_token %}
+  Seleziona la distanza massima dalla sede di Innocenti Srl:  <input type="number" value="700" name="km"> km <br>
+    <br>
+    <button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Visualizza mappa </font> </button>
+
+</form>
+
+    <br>
+    <br>
+    {% if request.session.html  %}
+
+    {{ request.session.html|safe }}
+
+    {% endif %}
+
+
+
+
+
+
+{% endblock %}

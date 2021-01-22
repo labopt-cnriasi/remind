@@ -60,7 +60,7 @@
                     <li><a href="{% url 'admin:index' %}"> <b> Gestione dati (admin)</b></a></li>
                     <li><a href="{% url 'allapps:app1' %}"> <b> Pianificatore Produzione </b>  </a></li>
                     <li><a href="{% url 'allapps:app2' %}"> <b> Pianificatore Logistica </b> </a></li>
-                    <li><a href=""> <b> Analisi profittabilità <br> (in lavorazione)</b></a></li>
+                    <li><a href="{% url 'allapps:app3' %}"> <b> Analisi dei profitti </b></a></li>
                 </ul>
             {% endblock %}
         </div>
@@ -92,8 +92,8 @@
               <li><a href="{% url 'home' %}"> Home </a></li>
               <li><a href="{% url 'admin:index' %}"> Gestione dati (admin)</a></li>
               <li><a href="{% url 'allapps:app1' %}"> Pianificatore Produzione </a></li>
-              <li><a href="{% url 'allapps:app2' %}">  Pianificatore Logistica  </a></li>
-              <li><a href="{% url 'allapps:app3' %}">  Analisi profittabilità <br> (in lavorazione) </a></li>
+              <li><a href="{% url 'allapps:app2' %}"> Pianificatore Logistica </a></li>
+              <li><a href="{% url 'allapps:app3' %}"> Analisi dei profitti  </a></li>
               <li><a href="{% url 'allapps:contatti' %}"> Contatti</a></li>
 
             </ul>
@@ -104,7 +104,7 @@
             <ul class="footer-links" >
               <li><a href="http://www.iasi.cnr.it/new/">IASI</a></li>
               <li><a href="https://www.cnr.it/">CNR</a></li>
-              <li><a href="http://www.innocenti.it/">Innocenti Srl</a></li>
+              <li><a href="https://www.innocentisrl.it/">Innocenti Srl</a></li>
               <li><a href="http://www.lazioeuropa.it/bandi/por_fesr_bando_circular_economy_ed_energia-494/">POR FESR Lazio 2014-2020 Circular Economy ed Energia</a></li>
               <li><a href="https://www.ellenmacarthurfoundation.org/circular-economy/what-is-the-circular-economy">Che cos'è l'economia circolare?</a></li>
             </ul>

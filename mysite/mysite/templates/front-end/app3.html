@@ -6,7 +6,82 @@
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
-Questa applicazione è ancora in via di sviluppo
+Benvenuto nel modulo di <i> <b> Analisi dei profitti </b> </i>
+    <br>
+Attualmente sono disponbili i dati del triennio 18-20
+<br>
+Per utilizzare gli strumenti disponibili specifica le seguenti informazioni:
+<br>
+    <br>
 
+Seleziona la soglia in euro oltre la quale il profitto si considera elevato
+
+
+<form action="{% url 'allapps:app3' %}" method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned " >
+
+            <div class="form-row field-benchmark">
+                    <div>
+                            <label class="required" for="id_time_cost"> € </label>
+                                <input type="number" name="benchmark" value="180" class="vIntegerField" min="0" required="" id="id_time_cost">
+                    </div>
+            </div>
+
+            <br>
+            Seleziona il periodo di riferimento:
+            <br>
+
+            <div class="form-row field-date">
+                    <div>
+                            <label class="required" for="id_date">Dal giorno:</label>
+                                <input type="date" name="dateLB" value = "2020-01-01" class="vDateField" size="10" required="" id="id_date"><span class="datetimeshortcuts">
+                    </div>
+            </div>
+
+            <div class="form-row field-date">
+                    <div>
+                            <label class="required" for="id_date">Al giorno:</label>
+                                <input type="date" name="dateUB" value = "2020-11-27" class="vDateField" size="10" required="" id="id_date"><span class="datetimeshortcuts">
+                    </div>
+            </div>
+
+        <br>
+        Seleziona lo strumento da utilizzare:
+        <br>
+        <br>
+
+        <input type="radio"  name="tool" value="tool1" required>
+        <label for="male">Performance Cliente</label><br>
+        <input type="radio" id="female" name="tool" value="tool2">
+        <label for="female">I migliori/peggiori </label><br>
+        <input type="radio" id="other" name="tool" value="tool3" checked="checked">
+        <label for="other">Mappa interattiva</label>
+    </br>
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Procedi </font> </button>
+
+    </fieldset>
+
+</form>
+
+
+    <!--
+
+<br>
+Seleziona adesso uno dei seguenti strumenti da utilizzare
+<br>
+<form action="{% url 'allapps:app3tool1' %}" method="get">
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Performance Cliente </font> </button>
+</form>
+<form action="{% url 'allapps:app3tool2' %}" method="get">
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> I migliori/peggiori clienti </font> </button>
+</form>
+<form action="{% url 'allapps:app3tool3' %}" method="get">
+<button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Mappa dei profitti </font> </button>
+</form>
+<br>
+
+
+-->
 
 {% endblock %}

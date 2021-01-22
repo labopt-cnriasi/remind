@@ -1,0 +1,36 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+
+
+<p> Questo strumento permette di visualizzare l'elenco di un certo insieme di clienti.</p>
+<p> Seleziona il numero dei clienti da considerare: </p>
+
+<form action="{% url 'allapps:app3tool2' %}" method="POST">
+    {% csrf_token %}
+  <input type="number" value="10" name="numero"> <br>
+    <br>
+  <p> Specifica il criterio di selezione: </p>
+
+  <input type="radio"  name="tipo" value="migliori" checked="checked" required>
+  <label for="male">I più profittevoli </label><br>
+  <input type="radio" id="female" name="tipo" value="peggiori">
+  <label for="female">I meno profittevoli</label><br>
+
+
+    <button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Procedi </font> </button>
+
+</form>
+</br>
+    </br>   
+    {% if request.session.table  %}
+{{ request.session.table|safe }}
+{% endif %}
+
+
+{% endblock %}

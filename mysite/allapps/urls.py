@@ -10,6 +10,9 @@ urlpatterns = [
     url(r'^applicativo2/', views.App2View.as_view(), name='app2'),
     url(r'^applicativo2_result', views.App2_outputView.as_view(), name='app2_result'),
     url(r'^applicativo3/', views.App3View.as_view(), name='app3'),
+    url(r'^applicativo3_tool1', views.App3tool1View.as_view(), name='app3tool1'),
+    url(r'^applicativo3_tool2', views.App3tool2View.as_view(), name='app3tool2'),
+    url(r'^applicativo3_tool3', views.App3tool3View.as_view(), name='app3tool3'),
     url(r'^contatti', views.contattiView.as_view(), name='contatti'),
 ]
 admin.autodiscover()

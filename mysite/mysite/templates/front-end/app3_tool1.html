@@ -1,0 +1,53 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+{% load static bootstrap4 %}
+
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<p> Questo strumento permette di visualizzare le performance di uno specifico cliente.</p>
+    <p> Un grafico a torta ed un istogramma forniscono un ottimo strumento di controllo del cliente.</p>
+<p> Seleziona il cliente: </p>
+<form action="{% url 'allapps:app3tool1' %}" method="POST">
+    {% csrf_token %}
+<select name="item_id">
+{% for entry in clienti %}
+    {% if entry.id_Client != "Innocenti"  %}
+        <option name="{{ entry.id }}">{{ entry.id_Client }}</option>
+    {% endif %}
+{% endfor %}
+</select>
+<br>
+<br>
+    <button style="font-weight: bold;" type = "submit" id="myButton"  class="float-left submit-button" > <font color="darkblue"> Procedi </font> </button>
+
+</form>
+
+    {% if request.session.image_b64  %}
+    <img src="data:image/png;base64,{{ request.session.image_b64 }}">
+    {% endif %}
+
+    </br>
+
+    {% if request.session.table  %}
+    {{ request.session.table|safe }}
+    {% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

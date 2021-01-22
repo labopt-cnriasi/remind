@@ -1,7 +1,11 @@
 # Create your views here.
+import base64
+
 from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 from django.db.models import Sum
+
+from .StrumentiApp3 import mappa_produttori_Django, strumento_2
 from .models import Client, Mix_unloading, Input_App1, Output_App1, Output_App1_detail
 from .models import Truck, Mission, Input_App2, Output_App2, Output_App2_detail
 from datetime import datetime, timedelta
@@ -11,6 +15,10 @@ from .RoutePlanner import VRP_model
 from .VRP_Heuristics import load_instance, heur01, heuristic_result_interpreter
 from .VRP_results_interpreter import VRP_interpreter, matplolib_graph_plot
 import pandas as pd
+from django.shortcuts import get_object_or_404, redirect
+from .StrumentiApp3 import strumento_1
+from io import BytesIO
+from .APP3_functions import df_filterbydate
 
 
 def index(request):
@@ -335,10 +343,6 @@ class App2View(TemplateView):
             gap = 1e-4
             time_limit = 100
 
-            ### TO DO LIST
-            # 1) Come permettere la scelta fra più solutori: una tabella che contiene quelli disponibili ? ==> selezione a tendina tra gli acquistati
-            # 2) Come aggiungere come output dell'euristica le informazioni temporarli di visita dei nodi: arrivo e ripartenza
-
             if solver == 'GRB' or solver == 'CBC':
                 ## VRP_model
                 status, performances, var_results, x_opt, t_opt, l_opt = VRP_model(distance, duration, demand, time_info,
@@ -482,15 +486,140 @@ class App3View(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(request, **kwargs)
+        request.session["image_b64"] = None
+        request.session["table"] = None
+        request.session["html"] = None
+
+
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+
         context = self.get_context_data(request, **kwargs)
         print(request.POST)
         context['scarichi_prev'] = Mix_unloading.objects.all()
 
+        input_post = request.POST
+
+        context['benchmark'] = input_post['benchmark']
+        context['dateLB'] = input_post['dateLB']
+        context['dateUB'] = input_post['dateUB']
+
+        request.session['benchmark'] = input_post['benchmark']
+        request.session['dateLB'] = input_post['dateLB']
+        request.session['dateUB'] = input_post['dateUB']
+
+
+        #smistamento alle view specifiche
+        selected_tool = input_post["tool"]
+        if selected_tool == "tool1":
+            return redirect("/allapps/applicativo3_tool1")
+        elif selected_tool == "tool2":
+            return redirect("/allapps/applicativo3_tool2")
+        else:
+            return redirect("/allapps/applicativo3_tool3")
+
         return self.render_to_response(context)
 
+class App3tool1View(TemplateView):
+    template_name = "front-end/app3_tool1.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['clienti'] = Client.objects.all()
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+
+        benchmark = int(request.session.get('benchmark', False))
+        dateLB = request.session.get('dateLB', False)
+        dateUB = request.session.get('dateUB', False)
+        dateLB = datetime.strptime(dateLB, "%Y-%m-%d").date()
+        dateUB = datetime.strptime(dateUB, "%Y-%m-%d").date()
+        df = pd.read_excel('data/REMIND_Profitto_Commesse_18-19-20.xlsx')
+        df = df_filterbydate(df, dateLB, dateUB)
+
+        id_cliente = request.POST["item_id"]
+        fig, info_table = strumento_1(df,benchmark, id_cliente)
+
+        request.session["table"] = info_table
+
+        tmpfile = BytesIO()
+        fig.tight_layout()
+        fig.savefig(tmpfile, format='png')
+        encoded = base64.b64encode(tmpfile.getvalue()).decode('utf8')
+        request.session["image_b64"] = encoded
+        return redirect("/allapps/applicativo3_tool1")
+
+
+class App3tool2View(TemplateView):
+    template_name = "front-end/app3_tool2.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+
+        benchmark = int(request.session.get('benchmark', False))
+        dateLB = request.session.get('dateLB', False)
+        dateUB = request.session.get('dateUB', False)
+        dateLB = datetime.strptime(dateLB, "%Y-%m-%d").date()
+        dateUB = datetime.strptime(dateUB, "%Y-%m-%d").date()
+        df = pd.read_excel('data/REMIND_Profitto_Commesse_18-19-20.xlsx')
+        df = df_filterbydate(df, dateLB, dateUB)
+
+        numero = int(request.POST["numero"])
+        ordine = request.POST["tipo"]
+        table = strumento_2(df, numero, ordine)
+        request.session["table"] = table
+
+
+
+
+        return self.render_to_response(context)
+
+class App3tool3View(TemplateView):
+    template_name = "front-end/app3_tool3.html"
+
+    def get_context_data(self, request, **kwargs):
+        context = super(TemplateView, self).get_context_data(request=request, **kwargs)
+        context['missioni'] = Mission.objects.all()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_context_data(request, **kwargs)
+
+        benchmark = int(request.session.get('benchmark', False))
+        dateLB = request.session.get('dateLB', False)
+        dateUB = request.session.get('dateUB', False)
+        dateLB = datetime.strptime(dateLB, "%Y-%m-%d").date()
+        dateUB = datetime.strptime(dateUB, "%Y-%m-%d").date()
+        df = pd.read_excel('data/REMIND_Profitto_Commesse_18-19-20.xlsx')
+        df = df_filterbydate(df, dateLB, dateUB)
+
+        km = int(request.POST["km"])
+        df = df[df['dist[km]'] <= km]
+
+        html = mappa_produttori_Django(df,benchmark,True)
+        request.session["html"] = html
+        return redirect("/allapps/applicativo3_tool3")
 
 class contattiView(TemplateView):
     template_name = "front-end/contatti.html"
