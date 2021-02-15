@@ -17,3 +17,5 @@ install module import_export:
 install module bootstrap: $ `conda install django-bootstrap4`  
 install folium: $ `pip install folium`
 install OSRM server (Open Source Routing Machine) https://github.com/Project-OSRM/osrm-backend  
+### Gurobi
+A license of gurobi is needed to run the project without errors. In a next release Gurobi license will be required only if you select to optimize via gurobi solver.
