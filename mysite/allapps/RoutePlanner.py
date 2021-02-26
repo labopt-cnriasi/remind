@@ -1,5 +1,5 @@
 from mip import *
-
+import subprocess
 import pandas as pd
 import numpy as np
 
@@ -72,7 +72,19 @@ def VRP_model(distance,duration,demand,time_info, trucks_info, solver, gap, time
 
     ######## Model ###########################################################
 
-    m = Model("VRP", sense=MINIMIZE, solver_name = solver)  # CBC or GRB for Gurobi
+    # "/home/diego/anaconda3/bin/" obtained by "which gurobi_cl" in terminal prompt.
+
+    if solver == 'GRB':
+        try:
+            # gurobi_cl path to include in the following command line can be retrieved
+            # by entering "which gurobi_cl" in a command/terminal prompt.
+            subprocess.check_output("/home/diego/anaconda3/bin/gurobi_cl")
+            m = Model("VRP", sense=MINIMIZE, solver_name=solver)
+        except Exception as e:
+            print(e)
+            solver = 'CBC'
+            m = Model("VRP", sense=MINIMIZE, solver_name=solver)
+
 
     # Variables
 
