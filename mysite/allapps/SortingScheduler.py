@@ -3,17 +3,15 @@ Created on Mon Mar 23 17:06:41 2020
 
 @author: diego
 """
-
+from mip import *
 import os
-os.environ['GRB_LICENSE_FILE'] = '/home/diego/gurobi.lic'
-import gurobi as GRB
-from gurobipy import *
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+import subprocess
 
-cwd = os.getcwd()  # Get the current working directory (cwd)
-files = os.listdir(cwd)  # Get all the files in that directory
+# from .Configurations import Gurobi_license_path
+# os.environ['GRB_LICENSE_FILE'] = Gurobi_license_path
+
 
 #list_of_inputs
 #
@@ -118,45 +116,53 @@ def sorting_model(input_app,arrivals):
     C_prod = True
     C_stock = True
 
-    m = Model('WFA')
+    ######## Model ###########################################################
+
+    # Gurobi_cl_path in Configurations.py obtained by "which gurobi_cl" in terminal prompt.
+    from .Configurations import Gurobi_cl_path
+
+    solver = 'GRB'
+    if solver == 'GRB':
+        try:
+            # gurobi_cl path to include in Configurations.py can be retrieved
+            # by entering "which gurobi_cl" in a command/terminal prompt. Please take a look to Configurations.py
+            subprocess.run(Gurobi_cl_path, stdout=subprocess.PIPE).stdout.decode('utf-8')
+            m = Model("WFA", sense=MINIMIZE, solver_name=solver)
+        except Exception as e:
+            print(e)
+            solver = 'CBC'
+            m = Model("WFA", sense=MINIMIZE, solver_name=solver)
+    else:
+        solver = 'CBC'
+        m = Model("WFA", sense=MINIMIZE, solver_name=solver)
 
     # VARIABLES
 
     # workforce to be employed on selection stag j
     if C_prod == True:
-        x = {(j, t): m.addVar(lb=0, vtype=GRB.INTEGER, obj=C_t[t], name="x[{},{}]".format(j, t)) for j in range(J) for t
-             in range(TH)}
+        x = {(j, t): m.add_var(lb=0, var_type=INTEGER, obj=C_t[t], name="x_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
     else:
-        x = {(j, t): m.addVar(lb=0, vtype=GRB.INTEGER, name="x[{},{}]".format(j, t)) for j in range(J) for t in
-             range(TH)}
+        x = {(j, t): m.add_var(lb=0, var_type=INTEGER, name="x_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
 
     # quantity preoccesed in a shift
-    u = {(j, t): m.addVar(lb=0, vtype=GRB.CONTINUOUS, name="u[{},{}]".format(j, t)) for j in range(J) for t in
-         range(TH)}
+    u = {(j, t): m.add_var(lb=0, var_type=CONTINUOUS, name="u_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
 
     # selection stage start
     if C_prod == True:
-        y = {(j, t): m.addVar(lb=0, ub=1, obj = setup_cost[j], vtype=GRB.BINARY, name="y[{},{}]".format(j, t)) for j in range(J) for
-             t in range(TH)}
+        y = {(j, t): m.add_var(lb=0, ub=1, obj=setup_cost[j], var_type=BINARY, name="y_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
     else:
-        y = {(j, t): m.addVar(lb=0, ub=1, vtype=GRB.BINARY, name="y[{},{}]".format(j, t)) for j in range(J) for t in
-             range(TH)}
+        y = {(j, t): m.add_var(lb=0, ub=1, var_type=BINARY, name="y_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
     # These are the stock variables regarding the j-th selection stage
     if C_stock == True:
-        I = {(j, t): m.addVar(lb=0, ub=S[j], vtype=GRB.CONTINUOUS, name="I_[{}_{}]".format(j, t)) for j in range(J) for
-             t in range(TH)}  # stock quantity
-        I_1 = {(j, t): m.addVar(lb=0, ub=LC[j], vtype=GRB.CONTINUOUS, obj=dh[j, 0], name="I_1_[{}_{}]".format(j, t)) for
-               j in range(J) for t in range(TH)}  # stock quantity below critical level
-        I_2 = {(j, t): m.addVar(lb=0, vtype=GRB.CONTINUOUS, obj=dh[j, 1], name="I_2_[{}_{}]".format(j, t)) for j in
-               range(J) for t in range(TH)}  # stock quantity above critical level
+        I = {(j, t): m.add_var(lb=0, ub=S[j], var_type=CONTINUOUS, name="I_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}  # stock quantity
+        I_1 = {(j, t): m.add_var(lb=0, ub=LC[j], var_type=CONTINUOUS, obj=dh[j, 0], name="I_1_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}  # stock quantity below critical level
+        I_2 = {(j, t): m.add_var(lb=0, var_type=CONTINUOUS, obj=dh[j, 1], name="I_2_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}  # stock quantity above critical level
     else:
-        I = {(j, t): m.addVar(lb=0, ub=S[j], vtype=GRB.CONTINUOUS, name="I_[{}_{}]".format(j, t)) for j in range(J) for
-             t in range(TH)}  # stock quantity
+        I = {(j, t): m.add_var(lb=0, ub=S[j], var_type=CONTINUOUS, name="I_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}  # stock quantity
 
     # binary variable concerning the overcoming of critical level
     if C_stock == True:
-        w = {(j, t): m.addVar(lb=0, ub=1, vtype=GRB.BINARY, name="w[{},{}]".format(j, t)) for j in range(J) for t in
-             range(TH)}
+        w = {(j, t): m.add_var(lb=0, ub=1, var_type=BINARY, name="w_{}_{}".format(j, t)) for j in range(J) for t in range(TH)}
 
     # CONSTRAINTS
 
@@ -164,14 +170,14 @@ def sorting_model(input_app,arrivals):
     for j in range(J):
         for t in range(TH):
             # Planned workforce must not exceed the maximum number of available workforce
-            m.addConstr(x[j, t] <= M * y[j, t], name="bigM_{}_{}".format(j, t))
+            m += x[j, t] <= M * y[j, t], "bigM_{}_{}".format(j, t)
             # For each period there is a minimum fixed number of workers for selection stage j
-            m.addConstr(x[j, t] >= E[j] * y[j, t], name='minWF_{}_{}'.format(j, t))
+            m += x[j, t] >= E[j] * y[j, t], 'minWF_{}_{}'.format(j, t)
     ###############################################################################################
 
     # ( 3 ) #######################################################################################
     for t in range(TH):
-        m.addConstr(quicksum(x[j, t] for j in range(J)) <= M, name="Wforce_bound_{}".format(t))
+        m += xsum(x[j, t] for j in range(J)) <= M, "Wforce_bound_{}".format(t)
     ###############################################################################################
 
     # ( 4 ) #######################################################################################
@@ -180,18 +186,18 @@ def sorting_model(input_app,arrivals):
     for j in range(J):
         for t in range(TH):
             if t in T[0]:
-                m.addConstr(u[j, t] <= SK[j, 0] * x[j, t], name="prod_{}_{}".format(j, t))
+                m += u[j, t] <= SK[j, 0] * x[j, t], "prod_{}_{}".format(j, t)
             if t in T[1]:
-                m.addConstr(u[j, t] <= SK[j, 1] * x[j, t], name="prod_{}_{}".format(j, t))
+                m += u[j, t] <= SK[j, 1] * x[j, t], "prod_{}_{}".format(j, t)
     ###############################################################################################
 
     # not included in paper formulation ###########################################################
     # Starting level of the first storage
     for j in range(J):
         if j == 0:
-            m.addConstr(I[j, 0] == a[0] - u[0, 0], name="initializzation_{}".format(j))
+            m += I[j, 0] == a[0] - u[0, 0], "initializzation_{}".format(j)
         else:
-            m.addConstr(I[j, 0] == alpha[j] * u[j - 1, 0], name="initializzation_{}".format(j))
+            m += I[j, 0] == alpha[j] * u[j - 1, 0], "initializzation_{}".format(j)
     ###############################################################################################
 
     # ( 5 ) & ( 6 ) ################################################################################
@@ -199,166 +205,85 @@ def sorting_model(input_app,arrivals):
     for j in range(J):
         for t in range(1, TH):
             if j == 0:
-                m.addConstr(I[j, t] == I[j, t - 1] + a[t] - u[j, t], name="balance_{}_{}".format(j, t))
+                m += I[j, t] == I[j, t - 1] + a[t] - u[j, t], "balance_{}_{}".format(j, t)
             else:
-                m.addConstr(I[j, t] == I[j, t - 1] + alpha[j] * u[j - 1, t] - u[j, t],
-                            name="balance_{}_{}".format(j, t))
-    ###############################################################################################
+                m += I[j, t] == I[j, t - 1] + alpha[j] * u[j - 1, t] - u[j, t], "balance_{}_{}".format(j, t)
+
+
+###############################################################################################
 
     if C_stock == True:
         # ( 7 ) #######################################################################################
         # The constraints below are needed to linearize the stock costs relating to selection stages
         for j in range(J):
             for t in range(TH):
-                m.addConstr(I[j, t] == I_1[j, t] + I_2[j, t], name="linear_stock_{}_{}".format(j, t))
+                m += I[j, t] == I_1[j, t] + I_2[j, t], "linear_stock_{}_{}".format(j, t)
             ###############################################################################################
 
             # ( 8 ) & ( 9 ) ###############################################################################
             for t in range(TH):
-                m.addConstr(I_1[j, t] >= LC[j] * w[j, t], name="v1_{}_{}".format(j, t))
-                m.addConstr(I_2[j, t] <= (S[j] - LC[j]) * w[j, t], name="v2_{}_{}".format(j, t))
+                m += I_1[j, t] >= LC[j] * w[j, t], "v1_{}_{}".format(j, t)
+                m += I_2[j, t] <= (S[j] - LC[j]) * w[j, t], "v2_{}_{}".format(j, t)
         ###############################################################################################
 
     # ( 10 ) ######################################################################################
     # These two constraints set the stock level over the last period below a decided level both for the first and second stock level
     for j in range(J):
-        m.addConstr(I[j, TH - 1] <= np.floor(ro[j] * LC[j]), name="end_{}_{}".format(j, TH - 1))
+        m += I[j, TH - 1] <= np.floor(ro[j] * LC[j]), "end_{}_{}".format(j, TH - 1)
     ###############################################################################################
 
-    m.modelSense = GRB.MINIMIZE
-    m.update()
+    m.objective = minimize(xsum(C_t[t] * x[j, t] for j in range(J) for t in range(TH)) +
+                           xsum(setup_cost[j] * y[j, t] for j in range(J) for t in range(TH)) +
+                           xsum(dh[j, 0] * I_1[j, t] + dh[j, 1] * I_2[j, t] for j in range(J) for t in range(TH)))
 
-    # m.Params.ConcurrentMIP = 1
-    m.Params.MIPGap = GapTol
-    m.Params.Threads = 4  # thread = m.setParam(GRB.Param.Threads, 1)
-    m.Params.timelimit = TimeLimit  # timelimit = m.setParam(GRB.Param.TimeLimit, 3600.0)
-    m.optimize()
-    status = m.status
-    Runtime = m.Runtime
-    print('Runtime was ', Runtime)
+    m.max_gap = GapTol
+    status = m.optimize(max_seconds=TimeLimit)
 
-    ################################################# RESULTS #################################################
+    var_results = []
+    y_opt = []
+    x_opt = []
+    u_opt = []
 
-    if status == 2:  # OPTIMAL
-        name_lp = "WFA_test_" + str(TH) + '_' + '_' + cost_labels[3] + " storage costs.lp"
-        #m.write(name_lp)
-        optObjVal = m.ObjVal
-        bestObjBound = m.ObjBound
-        IterCount = m.IterCount
-        NodeCount = m.NodeCount
-        NumConstrs = m.NumConstrs
-        NumVars = m.NumVars
-        NumBinVar = m.NumBinVars
-        NumIntVar = m.NumIntVars
-        gap = m.MIPGap
-        status = "optimal"
-        #m.write('WFA_Diego.lp')
-    else:
-        altern_status = status
-        print("Optimization stopped with status = {}".format(altern_status))
-
-    #################################################
-
-    ############# Uncomment if you want to save excel files for graphs  #############
-
-    if status == "optimal":
-
-        a = pd.Series(a)
-
-        I = pd.Series(I)
-
-        if C_stock == True:
-            I_1 = pd.Series(I_1)
-            I_2 = pd.Series(I_2)
-            w = pd.Series(w)
-            I_1_opt = []
-            I_2_opt = []
-            w_opt = []
-
-        y = pd.Series(y)
-        x = pd.Series(x)
-        u = pd.Series(u)
-
-        I_opt = []
-        y_opt = []
-        x_opt = []
-        u_opt = []
-
-        for j in range(J):
-
-            I_opt.append(I[j].apply(lambda x: x.X))
-
-            if C_stock == True:
-                I_1_opt.append(I_1[j].apply(lambda x: x.X))
-                I_2_opt.append(I_2[j].apply(lambda x: x.X))
-                w_opt.append(w[j].apply(lambda x: x.X))
-
-            y_opt.append(y[j].apply(lambda x: x.X))
-            x_opt.append(x[j].apply(lambda x: x.X))
-            u_opt.append(u[j].apply(lambda x: x.X))
-
-        a = pd.DataFrame(a)
-
-        I_opt = pd.DataFrame(I_opt).transpose()
-
-        if C_stock == True:
-            I_1_opt = pd.DataFrame(I_1_opt).transpose()
-            I_2_opt = pd.DataFrame(I_2_opt).transpose()
-            w_opt = pd.DataFrame(w_opt).transpose()
-
-        y_opt = pd.DataFrame(y_opt).transpose()
-        x_opt = pd.DataFrame(x_opt).transpose()
-        u_opt = pd.DataFrame(u_opt).transpose()
-
-        opt_values_list = [a]
-        opt_val_columns = ["arrivals"]
-        for j in range(J):
-            # I
-            opt_values_list.append(I_opt.iloc[:, j])
-            opt_val_columns.append("I_j=" + str(j + 1))
-            # I_1
-            # opt_values_list.append(I_1_opt.iloc[:,j])
-            # opt_val_columns.append("I_1_j="+str(j+1))
-            # I_2
-            # opt_values_list.append(I_2_opt.iloc[:,j])
-            # opt_val_columns.append("I_2_j="+str(j+1))
-            # y
-            opt_values_list.append(y_opt.iloc[:, j])
-            opt_val_columns.append("y_j=" + str(j + 1))
-            # x
-            opt_values_list.append(x_opt.iloc[:, j])
-            opt_val_columns.append("x_j=" + str(j + 1))
-            # u
-            opt_values_list.append(u_opt.iloc[:, j])
-            opt_val_columns.append("u_j=" + str(j + 1))
-            # w
-            opt_values_list.append(w_opt.iloc[:, j])
-            opt_val_columns.append("w_j=" + str(j + 1))
-
-        opt_values = pd.concat(opt_values_list, axis=1)
-        opt_values = round(opt_values, 2)
-        opt_values.columns = opt_val_columns
-        #opt_values.to_excel("Output WFA" + "_J = " + str(J) + "_TH = " + str(TH) + '_' +  '_' + cost_labels[3] + ".xlsx")
-
-    else:
-        y_opt = []
-        x_opt = []
-        u_opt = []
+    if status == OptimizationStatus.NO_SOLUTION_FOUND:
         status = "infeasible"
-        return status, y_opt, x_opt, u_opt
+        performances = [m.objective_value, m.objective_bound, m.gap]
+
+    if status == OptimizationStatus.OPTIMAL or status == OptimizationStatus.FEASIBLE:
+        status = "optimal"
+        performances = [m.objective_value, m.objective_bound, m.gap]
+
+        for v in m.vars:
+            var_results.append([v.name, v.x])
+
+        var_results = pd.DataFrame.from_records(var_results, columns=["variable", "value"])
+
+        y_opt = var_results[var_results['variable'].str.contains("y", na=False)]
+        x_opt = var_results[var_results['variable'].str.contains("x", na=False)]
+        u_opt = var_results[var_results['variable'].str.contains("u", na=False)]
+
+        y_opt['value'] = y_opt['value'].apply(pd.to_numeric).astype(int)
+        x_opt['value'] = x_opt['value'].apply(pd.to_numeric).astype(int)
+        u_opt['value'] = u_opt['value'].apply(pd.to_numeric).astype(int)
+
+        y_opt_1t = y_opt[y_opt['variable'].str.contains("y_0", na=False)]['value'].tolist()
+        y_opt_2t = y_opt[y_opt['variable'].str.contains("y_1", na=False)]['value'].tolist()
+        y_opt = pd.DataFrame.from_records([y_opt_1t,y_opt_2t]).T
+
+        x_opt_1t = x_opt[x_opt['variable'].str.contains("x_0", na=False)]['value'].tolist()
+        x_opt_2t = x_opt[x_opt['variable'].str.contains("x_1", na=False)]['value'].tolist()
+        x_opt = pd.DataFrame.from_records([x_opt_1t,x_opt_2t]).T
+
+        u_opt_1t = u_opt[u_opt['variable'].str.contains("u_0", na=False)]['value'].tolist()
+        u_opt_2t = u_opt[u_opt['variable'].str.contains("u_1", na=False)]['value'].tolist()
+        u_opt = pd.DataFrame.from_records([u_opt_1t,u_opt_2t]).T
 
 
-    #################################################
-    m.update()
-
-    y_opt.iloc[:, 0] = [int(i) for i in y_opt.iloc[:, 0]]
-    y_opt.iloc[:, 1] = [int(i) for i in y_opt.iloc[:, 1]]
-
-    x_opt.iloc[:, 0] = [int(i) for i in x_opt.iloc[:, 0]]
-    x_opt.iloc[:, 1] = [int(i) for i in x_opt.iloc[:, 1]]
-
-    u_opt.iloc[:, 0] = [int(i) for i in u_opt.iloc[:, 0]]
-    u_opt.iloc[:, 1] = [int(i) for i in u_opt.iloc[:, 1]]
+    if status == OptimizationStatus.INFEASIBLE:
+        performances = "INFEASIBLE"
+        var_results = "INFEASIBLE"
+        x_opt = "INFEASIBLE"
+        T_opt = "INFEASIBLE"
+        L_opt = "INFEASIBLE"
 
     return status, y_opt, x_opt, u_opt
 

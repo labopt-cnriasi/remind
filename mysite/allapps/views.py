@@ -207,7 +207,7 @@ class App1View(TemplateView):
 
             if status == "optimal":
 
-                context["optimal"] = "Il problema non ammette solouzione ottima"
+                context["optimal"] = "Il problema ammette solouzione ottima"
                 output_app1 = Output_App1(input_reference=input_app1)
 
                 first_sorting_new = []

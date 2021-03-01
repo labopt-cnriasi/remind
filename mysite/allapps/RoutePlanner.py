@@ -2,7 +2,10 @@ from mip import *
 import subprocess
 import pandas as pd
 import numpy as np
+import os
 
+# from .Configurations import Gurobi_license_path
+# os.environ['GRB_LICENSE_FILE'] = Gurobi_license_path
 
 def VRP_model(distance,duration,demand,time_info, trucks_info, solver, gap, time_limit):
 
@@ -72,19 +75,23 @@ def VRP_model(distance,duration,demand,time_info, trucks_info, solver, gap, time
 
     ######## Model ###########################################################
 
-    # "/home/diego/anaconda3/bin/" obtained by "which gurobi_cl" in terminal prompt.
+    # gurobi_cl path to include in Configurations.py can be retrieved
+    # by entering "which gurobi_cl" in a command/terminal prompt. Please take a look to Configurations.py
+    from .Configurations import Gurobi_cl_path
 
     if solver == 'GRB':
         try:
-            # gurobi_cl path to include in the following command line can be retrieved
-            # by entering "which gurobi_cl" in a command/terminal prompt.
-            subprocess.check_output("/home/diego/anaconda3/bin/gurobi_cl")
+            # gurobi_cl path to include in Configurations.py can be retrieved
+            # by entering "which gurobi_cl" in a command/terminal prompt. Please take a look to Configurations.py
+            subprocess.run(Gurobi_cl_path, stdout=subprocess.PIPE).stdout.decode('utf-8')
             m = Model("VRP", sense=MINIMIZE, solver_name=solver)
         except Exception as e:
             print(e)
             solver = 'CBC'
             m = Model("VRP", sense=MINIMIZE, solver_name=solver)
-
+    else:
+        solver = 'CBC'
+        m = Model("VRP", sense=MINIMIZE, solver_name=solver)
 
     # Variables
 

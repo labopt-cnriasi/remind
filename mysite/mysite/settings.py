@@ -25,8 +25,7 @@ SECRET_KEY = '5g_fr!#7=(yf-r_%aox+gkgphy4q$=kst!f#pj#w*kcm2p6^8d'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'labopt.iasi.cnr.it']
 
 # Application definition
 
