@@ -4,7 +4,7 @@
 
 import pandas as pd
 import numpy as np
-import time
+import datetime
 
 np.random.seed(0)
 
@@ -310,10 +310,99 @@ def heur01(inst: DataInst):
     return tours
 
 
-def heuristic_result_interpreter(instance,trucks_plates, tours, distance, duration):
+def heuristic_result_interpreter(instance,trucks_plates, tours, distance, duration, time_info):
 
-    a = 1
+    N = len(instance)
+    K = len(trucks_plates)
+    paths = [[]]*K
+    VRP_results = trucks_plates.values.tolist()
+
+    for k in np.arange(1,K):
+        paths[k] = "truck not used"
+        VRP_results[k].append(paths[k])
+
+    tour = tours[0]
+    node_list = tour.hops
+
+    k = 0
+    for i in node_list:
+        visit_order = i
+        node_name   = instance.loc[instance['ID'] == i, 'node_name'].iloc[0]
+        node_lat    = instance.loc[instance['ID'] == i, 'lat'].iloc[0]
+        node_long   = instance.loc[instance['ID'] == i, 'long'].iloc[0]
+        load_unload = instance.loc[instance['ID'] == i, 'demand'].iloc[0]
+        paths[k].append([0, visit_order, node_name, i, node_lat, node_long, load_unload])
+
+    ### this loop adds time info to path of truck k ###
+    for i in range(len(paths[k])):
+
+        node = paths[k][i][3]
+
+        if i == 0:
+            arrival_time = 0
+            departure_time = time_info[1][0].hour - duration.iloc[0,1]
+            hours = int(departure_time)
+            minutes = int((departure_time - int(departure_time)) * 60)
+            departure_time_datetime = datetime.time(hour=hours, minute=minutes)
+            arrival_time_datetime = departure_time_datetime # later will be corrected and set as an emtpy string " "
+        elif i == 1:
+            arrival_time = time_info[i][0]
+            node_demand = instance.loc[instance['ID'] == node, 'demand'].iloc[0]
+            service_time = instance.loc[instance['ID'] == node, 'service time'].iloc[0] * node_demand
+            departure_time = arrival_time.hour + arrival_time.minute + service_time / 60
+            arrival_time_datetime = arrival_time
+            hours = int(departure_time)
+            minutes = int((departure_time - int(departure_time)) * 60)
+            departure_time_datetime = datetime.time(hour=hours, minute=minutes)
+        else:
+            previous_node = paths[k][i-1][3]
+            arrival_time = departure_time + duration.iloc[previous_node, node]
+            node_demand = instance.loc[instance['ID'] == node, 'demand'].iloc[0]
+            if node_demand >= 0:
+                service_time = instance.loc[instance['ID'] == node, 'service time'].iloc[0] * node_demand
+                departure_time = arrival_time + service_time / 60
+            if node_demand < 0:
+                service_time = instance.loc[instance['ID'] == node, 'service time'].iloc[0] * abs(node_demand) - abs(node_demand) * (5 / 60)
+                departure_time = arrival_time + service_time / 60
+
+        ################## datetime translation####################################
+        if i > 1:
+            hours = int(arrival_time)
+            minutes = int((arrival_time - int(arrival_time)) * 60)
+            arrival_time_datetime = datetime.time(hour=hours, minute=minutes)
+
+            hours = int(departure_time)
+            minutes = int((departure_time - int(departure_time)) * 60)
+            departure_time_datetime = datetime.time(hour=hours, minute=minutes)
+
+        #############################################################################
+        if i == 0:
+            leaving_load = 0
+        else:
+            leaving_load = leaving_load + node_demand
+
+        paths[k][i].append(arrival_time_datetime)
+        paths[k][i].append(departure_time_datetime)
+        paths[k][i].append(leaving_load)
+
+    paths[k] = pd.DataFrame(paths[k], columns=['truck #', "visit order", "node name", "node number", "lat", "long", "load_unload","arrival time", "departure time", "leaving load"])
+    paths[k] = paths[k].astype({'truck #': int, 'visit order': int, 'node name': str, 'node number': int, 'lat': float, 'long': float,'load_unload': int, 'arrival time': str, 'departure time': str, 'leaving load': int})
+
+    # if last 2 nodes visited correspond to the depot, drop one
+    if paths[k].iloc[-1]["node name"] == paths[k].iloc[-2]["node name"]:
+        paths[k] = paths[k].iloc[:-1]
+
+    # set first arrival time as " "
+    paths[k].loc[0, 'arrival time'] = " "
+
+    # set last departure time as " "
+    paths[k].loc[paths[k].index[-1], 'departure time'] = " "
+    paths[k].loc[paths[k].index[-1], 'leaving load'] = " "
+    ############################################################
 
 
-    return 0
+
+    VRP_results[k].append(paths[k])
+
+    return VRP_results
 

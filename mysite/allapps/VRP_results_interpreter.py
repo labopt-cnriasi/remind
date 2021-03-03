@@ -1,6 +1,5 @@
 """
 Created on Mon Aug 31 12:56:16 2020
-
 @author: Diego Maria Pinto
 """
 
@@ -167,6 +166,7 @@ def VRP_interpreter(instance, trucks_plates, x_opt, t_opt, l_opt, distance, dura
 
             # set last departure time as " "
             paths[k].loc[paths[k].index[-1],'departure time'] = " "
+            paths[k].loc[paths[k].index[-1], 'leaving load'] = " "
             ############################################################
 
             VRP_results[k].append(paths[k])

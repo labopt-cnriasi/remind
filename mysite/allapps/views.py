@@ -353,7 +353,7 @@ class App2View(TemplateView):
                 ## VRP_heuristic
                 data_instance = load_instance(distance, duration, demand, time_info, trucks_info)
                 tours = heur01(data_instance)
-                VRP_results = heuristic_result_interpreter(instance, trucks_plates, tours, distance, duration)
+                VRP_results = heuristic_result_interpreter(instance, trucks_plates, tours, distance, duration, time_info)
 
             output_app2_detail.is_running = "completato"
             output_app2_detail.save()
